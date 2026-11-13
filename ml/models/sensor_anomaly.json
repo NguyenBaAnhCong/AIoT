@@ -1,0 +1,23 @@
+{
+  "task": "ANOMALY_DETECTION",
+  "algorithm": "Robust z-score (MAD)",
+  "threshold": 31.67727196805287,
+  "history_window": 8,
+  "features": [
+    "ph",
+    "ec",
+    "soil_moisture",
+    "n",
+    "p",
+    "k"
+  ],
+  "mad": {
+    "ph": 0.03706500000000053,
+    "ec": 0.015567300000000013,
+    "soil_moisture": 0.45219299999999957,
+    "n": 2.0015099999999912,
+    "p": 0.9636900000000084,
+    "k": 4.07715
+  },
+  "formula": "score = max_c |x_c - median(x_c[t-8..t-1])| / mad_c ; bất thường nếu score >= threshold"
+}

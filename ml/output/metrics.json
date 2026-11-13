@@ -1,0 +1,47 @@
+{
+  "version": "1.1.0",
+  "trained_at": "2026-11-12T21:55:13+07:00",
+  "dataset_version_no": 1,
+  "models": {
+    "SOIL-HEALTH-CLS": {
+      "algorithm": "Logistic Regression",
+      "artifact": "ml/models/soil_health_cls.joblib",
+      "sha256": "eaedffc4e6bb346387555b83a363bebd665bfeb05d4e035dc63751f26b08048d",
+      "size_kb": 1.14,
+      "test": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "val": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "latency_ms_avg": 1.6524620001291623,
+      "latency_ms_p95": 2.28155000404513
+    },
+    "SENSOR-ANOMALY": {
+      "algorithm": "Robust z-score (MAD)",
+      "artifact": "ml/models/sensor_anomaly.joblib",
+      "sha256": "1156476baeedc6d5c95366364587f7cc4e06ad4dc8c9e3025a6e109449415a48",
+      "size_kb": 0.2,
+      "test": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "val": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "latency_ms_avg": 0.25504699971255224,
+      "latency_ms_p95": 0.4137599993555341
+    }
+  }
+}
