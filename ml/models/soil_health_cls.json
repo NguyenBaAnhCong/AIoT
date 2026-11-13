@@ -1,0 +1,25 @@
+{
+  "task": "CLASSIFICATION",
+  "features": [
+    "ph",
+    "ec",
+    "soil_moisture",
+    "soil_temperature",
+    "n",
+    "p",
+    "k"
+  ],
+  "classes": [
+    "FAIR",
+    "GOOD"
+  ],
+  "units": {
+    "ph": "pH",
+    "ec": "dS/m",
+    "soil_moisture": "%",
+    "soil_temperature": "°C",
+    "n": "mg/kg",
+    "p": "mg/kg",
+    "k": "mg/kg"
+  }
+}
