@@ -1,6 +1,6 @@
 # Edge-AIoT Biochar – môi trường phát triển
 #   docker compose up -d db            -> chỉ chạy PostgreSQL (khuyến nghị khi dev)
-#   docker compose up -d --build       -> chạy cả database + backend
+#   docker compose up -d --build       -> chạy cả database + backend + giao diện (http://localhost:8080)
 #   docker compose down -v             -> xóa toàn bộ, kể cả dữ liệu (để nạp lại từ đầu)
 name: edge-aiot-biochar
 
@@ -42,10 +42,33 @@ services:
       JWT_SECRET: ${JWT_SECRET:-doi-chuoi-nay-trong-file-env}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
       MIGRATIONS_DIR: /migrations
+      TRUST_PROXY: "1"                    # đứng sau nginx: lấy đúng IP người dùng
+      DEV_DEFAULT_PASSWORD: ${DEV_DEFAULT_PASSWORD:-Biochar@2026}
+      SEED_DEV_PASSWORDS: ${SEED_DEV_PASSWORDS:-true}   # đặt false khi triển khai thật
     volumes:
       - ./database/migrations:/migrations:ro
     ports:
       - "${BACKEND_PORT:-4000}:4000"
+
+  frontend:
+    build: ./frontend
+    container_name: biochar-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"      # mở http://localhost:8080
+
+  # ---- TV2: bỏ dấu # khi gateway giả lập đã có Dockerfile (xem gateway-simulator/README.md) ----
+  # gateway-simulator:
+  #   build: ./gateway-simulator
+  #   container_name: biochar-gateway
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - backend
+  #   environment:
+  #     API_URL: http://backend:4000/api/v1
+  #     GATEWAY_API_KEY: ${GATEWAY_API_KEY:-}
 
 volumes:
   pgdata:

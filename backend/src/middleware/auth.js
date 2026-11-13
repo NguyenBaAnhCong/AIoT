@@ -1,16 +1,44 @@
 // =====================================================================
-// BẢN TẠM (tuần 1): cho các thành viên khác có sẵn tên hàm để import.
-// Tuần 2 sẽ thay phần bên trong bằng JWT + kiểm tra iam.permissions thật.
-// Chữ ký hàm giữ nguyên, nên code của cả nhóm KHÔNG phải sửa khi nâng cấp.
+// Xác thực + phân quyền thật (JWT + iam.permissions).
+//
+//   import { protect } from '../../middleware/auth.js';
+//   router.get('/plots',  protect('farm.read'),  handler);   // cần đăng nhập + quyền farm.read
+//   router.post('/plots', protect('farm.write'), handler);
+//   router.get('/me-only', protect(), handler);              // chỉ cần đăng nhập
+//
+// Truyền nhiều mã quyền = chỉ cần MỘT trong số đó:  protect('lab.write', 'lab.approve')
+// Sau khi qua, req.user = { id, username, fullName, roles[], permissions[] }.
 // =====================================================================
-import { isProd } from '../config/env.js';
+import { AppError } from '../utils/AppError.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { verifyAccess } from '../lib/tokens.js';
+import { getUserContext } from '../lib/userCache.js';
 
-/** Yêu cầu đăng nhập. Hiện tại: bỏ qua, gắn người dùng giả khi dev. */
-export function requireAuth(req, res, next) {
-  req.user = { id: null, username: 'dev', permissions: ['*'] };
-  if (isProd) console.warn('CẢNH BÁO: requireAuth đang là bản tạm!');
+/** Yêu cầu đăng nhập hợp lệ (header Authorization: Bearer <accessToken>). */
+export const requireAuth = asyncHandler(async (req, res, next) => {
+  const match = (req.headers.authorization || '').match(/^Bearer\s+(.+)$/i);
+  if (!match) throw AppError.unauthorized();
+
+  const { sub } = verifyAccess(match[1]);
+  const ctx = await getUserContext(sub);
+  if (!ctx || !ctx.is_active) throw AppError.unauthorized('Tài khoản không tồn tại hoặc đã bị khóa');
+
+  req.user = {
+    id: ctx.user_id,
+    username: ctx.username,
+    fullName: ctx.full_name,
+    roles: ctx.roles,
+    permissions: ctx.permissions,
+  };
   next();
-}
+});
 
-/** Yêu cầu có quyền, ví dụ requirePermission('lab.approve'). Hiện tại: luôn cho qua. */
-export const requirePermission = (/* code */) => (req, res, next) => next();
+/** Yêu cầu có ít nhất một trong các quyền. Phải đặt SAU requireAuth. */
+export const requirePermission = (...codes) => (req, res, next) => {
+  if (!req.user) return next(AppError.unauthorized());
+  if (codes.some((c) => req.user.permissions.includes(c))) return next();
+  next(AppError.forbidden(`Thiếu quyền: ${codes.join(' hoặc ')}`));
+};
+
+/** Gộp requireAuth + requirePermission. protect() không tham số = chỉ cần đăng nhập. */
+export const protect = (...codes) => (codes.length ? [requireAuth, requirePermission(...codes)] : [requireAuth]);
