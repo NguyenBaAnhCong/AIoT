@@ -1,0 +1,12 @@
+export const datasetsSql=`SELECT d.*, v.dataset_version_id,v.version_no,v.status AS version_status,v.record_count,v.valid_count,v.labeled_count,v.created_at AS version_created_at FROM dataset.datasets d LEFT JOIN LATERAL (SELECT * FROM dataset.dataset_versions WHERE dataset_id=d.dataset_id ORDER BY version_no DESC LIMIT 1) v ON true ORDER BY d.created_at DESC`;
+export const datasetSql=`SELECT * FROM dataset.datasets WHERE dataset_id=$1`;
+export const versionsSql=`SELECT r.*,v.dataset_version_id,v.dataset_id,v.version_no,v.status,v.time_from,v.time_to,v.aggregation,v.split_strategy,v.checksum,v.created_at FROM dataset.v_version_readiness r JOIN dataset.dataset_versions v USING(dataset_version_id) WHERE v.dataset_id=$1 ORDER BY v.version_no DESC`;
+export const versionSql=`SELECT r.*,v.* FROM dataset.dataset_versions v JOIN dataset.v_version_readiness r USING(dataset_version_id) WHERE v.dataset_version_id=$1`;
+export const createDatasetSql=`INSERT INTO dataset.datasets(dataset_code,name,purpose,site_id,experiment_id,owner_id,min_valid_observations,description) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`;
+export const createVersionSql=`INSERT INTO dataset.dataset_versions(dataset_id,version_no,time_from,time_to,aggregation,split_strategy,split_ratio,random_seed,created_by,notes) VALUES($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10) RETURNING *`;
+export const nextVersionSql=`SELECT COALESCE(max(version_no),0)+1 n FROM dataset.dataset_versions WHERE dataset_id=$1`;
+export const labelsSql=`SELECT * FROM dataset.labels ORDER BY label_set,class_order`;
+export const distributionSql=`SELECT l.label_code,l.name_vi,r.split,r.label_source,count(*)::int count FROM dataset.dataset_records r JOIN dataset.labels l USING(label_id) WHERE r.dataset_version_id=$1 GROUP BY l.label_code,l.name_vi,r.split,r.label_source ORDER BY l.class_order,r.split`;
+export const labelRecordSql=`UPDATE dataset.dataset_records SET label_id=$3,label_source='EXPERT' WHERE dataset_version_id=$1 AND record_id=$2 AND (label_source IS DISTINCT FROM 'EXPERT' OR label_id=$3) RETURNING *`;
+export const labelExistsSql=`SELECT label_id FROM dataset.labels WHERE label_id=$1`;
+export const exportSql=`SELECT record_id,observed_at,site_id,plot_id,treatment_id,soil_type,biochar_dose_kg_m2,crop_season_id,growth_stage_id,ph,ec,soil_moisture,soil_temperature,n,p,k,sensor_payload,lab_payload,label_id,label_source,split FROM dataset.dataset_records WHERE dataset_version_id=$1 AND valid_flag=true ORDER BY observed_at,plot_id`;
