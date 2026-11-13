@@ -1,0 +1,38 @@
+{
+  "version": "1.2.0",
+  "built_at": "2026-11-12T23:03:03+07:00",
+  "tensorflow": "2.21.0",
+  "source_version": "1.1.0",
+  "models": {
+    "SOIL-HEALTH-CLS": {
+      "artifact": "ml/models/soil_health_cls.tflite",
+      "sha256": "9458d124b5627ef8c972491728e186367e9ba23b3454e4063c46dff00403d8ad",
+      "size_kb": 2.56,
+      "quantization": "INT8",
+      "test": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "latency_ms_avg": 0.055568726456680304,
+      "latency_ms_p95": 0.089,
+      "latency_ms_max": 0.371
+    },
+    "SENSOR-ANOMALY": {
+      "artifact": "ml/models/sensor_anomaly.tflite",
+      "sha256": "5b1942221a6ca252796b32f9e00959cfef617a2bb772424f78e25a9388124452",
+      "size_kb": 1.31,
+      "quantization": "FP32",
+      "test": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "latency_ms_avg": 0.492638073321695,
+      "latency_ms_p95": 0.773,
+      "latency_ms_max": 1.759
+    }
+  }
+}
