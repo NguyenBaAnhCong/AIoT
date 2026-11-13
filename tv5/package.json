@@ -1,0 +1,22 @@
+{
+  "name": "edge-aiot-tv5",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:css": "tailwindcss -i ./alerts.tailwind.css -o ./public/alerts.css --minify && tailwindcss -i ./sqi.tailwind.css -o ./public/sqi.css --minify && tailwindcss -i ./reports.tailwind.css -o ./public/reports.css --minify",
+    "start": "node --env-file-if-exists=.env server.mjs",
+    "jobs": "node --env-file-if-exists=.env jobs.mjs",
+    "check": "node --env-file-if-exists=.env check.mjs",
+    "demo:jobs": "node --env-file-if-exists=.env demo-jobs.mjs",
+    "migrate": "node --env-file-if-exists=.env migrate.mjs"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "pdfkit": "^0.20.2",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.5",
+    "tailwindcss": "^4.3.5"
+  }
+}

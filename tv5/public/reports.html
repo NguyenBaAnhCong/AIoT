@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Báo cáo</title>
+<link rel="stylesheet" href="/reports.css">
+<!-- Lucide FileText, Sheet, Download và FileOutput -->
+<svg aria-hidden="true" class="absolute size-0 overflow-hidden" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="report-icon-document" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Zm0 0v6h6M8 13h8m-8 4h8"/></symbol>
+  <symbol id="report-icon-sheet" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Zm0 0v5h5"/><rect x="8" y="10" width="8" height="8" rx="1"/><path d="M8 14h8m-4-4v8"/></symbol>
+  <symbol id="report-icon-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m4-3 5 5 5-5m-5 5V3"/></symbol>
+  <symbol id="report-icon-export" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7m-6-11v6h6l-6-6m1 15h8m-3-3 3 3-3 3"/></symbol>
+</svg>
+<main id="reports-page" class="mx-auto grid max-w-[100rem] gap-6 px-4 py-6 sm:px-8 lg:px-12">
+  <header class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">Báo cáo</h1>
+      <p class="mt-1 text-sm text-slate-600">Xuất dữ liệu phân tích sức khỏe đất, hiệu quả nghiệm thức và báo cáo kinh tế.</p>
+    </div>
+    <nav aria-label="Màn hình TV5" class="report-nav">
+      <a href="/">Sức khỏe đất</a><a href="/alerts-ui">Cảnh báo</a><a aria-current="page" href="/reports-ui">Báo cáo</a>
+    </nav>
+  </header>
+  <div class="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+    <section class="report-card" aria-labelledby="report-create-heading">
+      <h2 id="report-create-heading" class="flex items-center gap-2">
+        <svg class="report-icon text-green-700" aria-hidden="true"><use href="#report-icon-document"></use></svg>
+        Tạo báo cáo
+      </h2>
+      <form id="report-form" class="grid min-w-0 gap-4">
+        <div class="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+          <label>Loại báo cáo <select name="type"><option value="ECONOMIC">Kinh tế</option>
+            <option value="TECHNICAL">Kỹ thuật</option><option value="ENVIRONMENTAL">Môi trường</option></select></label>
+          <label>Thí nghiệm <select name="experiment" required></select></label>
+          <label>Nghiệm thức <select name="treatment"></select></label>
+          <label>Mùa vụ <select name="season"></select></label>
+          <label id="report-from" hidden>Từ ngày <input name="from" type="date" disabled></label>
+          <label id="report-to" hidden>Đến ngày <input name="to" type="date" disabled></label>
+        </div>
+        <fieldset class="min-w-0">
+          <legend class="mb-2 text-sm font-medium text-slate-700">Định dạng</legend>
+          <div class="grid grid-cols-2 gap-2 sm:gap-3">
+            <label class="format-option">
+              <input type="radio" name="format" value="XLSX" checked required>
+              <span class="format-card">
+                <svg class="report-icon text-emerald-700" aria-hidden="true"><use href="#report-icon-sheet"></use></svg>
+                <span>Excel <small>.xlsx</small></span>
+              </span>
+            </label>
+            <label class="format-option">
+              <input type="radio" name="format" value="PDF">
+              <span class="format-card">
+                <svg class="report-icon text-red-700" aria-hidden="true"><use href="#report-icon-document"></use></svg>
+                <span>PDF <small>.pdf</small></span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+        <button class="report-submit" type="submit" disabled>
+          <svg class="report-icon" aria-hidden="true"><use href="#report-icon-export"></use></svg>
+          Tạo báo cáo
+        </button>
+      </form>
+      <p id="report-feedback" role="status"></p>
+    </section>
+    <section class="report-card" aria-labelledby="report-history-heading">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="report-history-heading">Lịch sử báo cáo</h2>
+        <select id="report-history-filter" aria-label="Lọc lịch sử theo loại báo cáo" class="w-auto max-w-full">
+          <option value="">Tất cả loại</option><option value="ECONOMIC">Kinh tế</option>
+          <option value="TECHNICAL">Kỹ thuật</option><option value="ENVIRONMENTAL">Môi trường</option>
+        </select>
+      </div>
+      <p id="report-history-feedback" role="status"></p>
+      <div id="report-list" class="min-w-0 overflow-x-auto"></div>
+    </section>
+  </div>
+</main>
+<script type="module" src="/workspace.js"></script>
+</html>

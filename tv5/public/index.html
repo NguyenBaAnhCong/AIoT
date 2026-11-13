@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sức khỏe đất</title>
+<link rel="stylesheet" href="/sqi.css">
+<main id="sqi-page" class="mx-auto grid max-w-[100rem] gap-5 px-4 py-6 sm:px-8 lg:px-12">
+  <header class="flex flex-wrap items-center justify-between gap-4">
+    <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">Sức khỏe đất</h1>
+    <nav aria-label="Màn hình TV5" class="sqi-nav">
+      <a aria-current="page" href="/">Sức khỏe đất</a>
+      <a href="/alerts-ui">Cảnh báo</a><a href="/reports-ui">Báo cáo</a>
+    </nav>
+  </header>
+  <div role="tablist" aria-label="Chức năng SQI" class="sqi-tabs">
+    <button id="monitor-tab" type="button" role="tab" aria-selected="true" aria-controls="monitor-panel">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 3v18h18M7 14l4-4 4 4 5-7"/></svg>
+      Giám sát &amp; Phân tích SQI
+    </button>
+    <button id="config-tab" type="button" role="tab" aria-selected="false" aria-controls="config-panel" tabindex="-1">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M2 14h4m4-6h4m4 8h4"/></svg>
+      Quản lý &amp; Cấu hình SQI
+    </button>
+  </div>
+  <div id="monitor-panel" role="tabpanel" aria-labelledby="monitor-tab" class="grid gap-5">
+    <form id="filters" class="sqi-card filter-bar" aria-label="Bộ lọc SQI">
+      <label>Ô đất <select id="plot" required></select></label>
+      <label>Phiên bản SQI <select id="definition" required></select></label>
+      <label>Từ ngày <input id="from" type="date" required></label>
+      <label>Đến ngày <input id="to" type="date" required></label>
+      <button id="submit" disabled>Xem kết quả</button>
+    </form>
+    <section class="sqi-card">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <h2>Điểm SQI theo ngày</h2>
+        <div id="selected-score" class="score-summary" hidden aria-live="polite">
+          <p id="selected-date"></p>
+          <div class="flex items-center gap-2">
+            <strong id="selected-value" class="text-2xl font-semibold tabular-nums text-green-700"></strong>
+            <span id="selected-class" class="sqi-badge"></span>
+          </div>
+        </div>
+      </div>
+      <p id="status" role="status"></p>
+      <div id="chart-region" class="relative" hidden>
+        <svg id="chart" role="img" aria-label="Biểu đồ miền điểm SQI theo ngày, thang từ 0 đến 1"></svg>
+        <div id="chart-tooltip" class="chart-tooltip" aria-hidden="true" hidden></div>
+      </div>
+      <label id="day-label" class="max-w-64" hidden>Ngày xem chi tiết <select id="day"></select></label>
+    </section>
+    <section id="details" class="sqi-card" hidden>
+      <h2>Chi tiết chỉ tiêu</h2>
+      <p id="summary" class="text-sm text-slate-600"></p>
+      <p id="detail-status" role="status"></p>
+      <div class="sqi-table-scroll">
+        <table>
+          <thead><tr><th>Chỉ tiêu</th><th>Nguồn</th><th>Giá trị đo</th><th>Điểm</th>
+            <th>Trọng số</th><th>Điểm có trọng số</th></tr></thead>
+          <tbody id="indicators"></tbody>
+        </table>
+      </div>
+    </section>
+    <section class="sqi-card">
+      <h2>So sánh nghiệm thức</h2>
+      <p id="comparison-status" role="status"></p>
+      <div class="sqi-table-scroll" id="comparison"></div>
+    </section>
+  </div>
+  <div id="config-panel" role="tabpanel" aria-labelledby="config-tab" class="grid gap-4" hidden>
+    <div id="sqi-tools" class="grid gap-5"></div>
+    <p id="sqi-feedback" role="status"></p>
+  </div>
+</main>
+<script type="module" src="/app.js"></script>
+<script type="module" src="/sqi-tools.js"></script>
+</html>

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cảnh báo</title>
+<link rel="stylesheet" href="/alerts.css">
+<main id="alerts-page" class="mx-auto grid max-w-[100rem] gap-6 px-4 py-6 sm:px-8 lg:px-12">
+  <header class="flex flex-wrap items-center justify-between gap-4">
+    <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">Cảnh báo và quyết định</h1>
+    <nav aria-label="Màn hình TV5" class="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+      <a href="/">Sức khỏe đất</a><a aria-current="page" href="/alerts-ui">Cảnh báo</a><a href="/reports-ui">Báo cáo</a>
+    </nav>
+  </header>
+  <section aria-label="Tổng quan cảnh báo" class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+    <article class="kpi-card"><p>Đang mở</p><p id="kpi-open" class="kpi-value text-amber-800">—</p></article>
+    <article class="kpi-card"><p>Cần xử lý gấp</p><p id="kpi-urgent" class="kpi-value text-red-800">—</p></article>
+    <article class="kpi-card"><p>Đã hoàn thành</p><p id="kpi-resolved" class="kpi-value text-emerald-800">—</p></article>
+    <p id="kpi-feedback" role="status" class="sm:col-span-3"></p>
+  </section>
+  <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
+  <section class="alert-panel">
+    <h2>Danh sách cảnh báo</h2>
+    <form id="alert-filters">
+      <label>Trạng thái <select name="status"><option value="">Tất cả</option>
+        <option value="OPEN">Đang mở</option><option value="ACK">Đã xác nhận</option>
+        <option value="RESOLVED">Đã giải quyết</option></select></label>
+      <label>Mức độ <select name="severity"><option value="">Tất cả</option>
+        <option value="LOW">Thấp</option><option value="MEDIUM">Trung bình</option><option value="HIGH">Cao</option>
+        <option value="CRITICAL">Khẩn cấp</option></select></label>
+      <label>Nguồn <select name="source"><option value="">Tất cả</option><option value="SENSOR">Cảm biến</option>
+        <option value="SQI">Chỉ số sức khỏe đất</option><option value="ML">Mô hình AI</option>
+        <option value="DEVICE">Thiết bị</option><option value="DATA_QUALITY">Chất lượng dữ liệu</option></select></label>
+      <button>Lọc cảnh báo</button>
+    </form>
+    <p id="alert-feedback" role="status"></p>
+    <div id="alert-list"></div>
+  </section>
+  <section class="alert-panel">
+    <h2>Đánh giá cảnh báo</h2>
+    <form id="evaluate">
+      <label>Thời điểm đánh giá <input name="at" type="datetime-local"></label>
+      <button>Chạy đánh giá</button>
+      <small>Để trống để đánh giá tại thời điểm hiện tại. Thời điểm nhập dùng giờ Việt Nam.</small>
+    </form>
+    <p id="evaluate-feedback" role="status"></p>
+  </section>
+  </div>
+  <section aria-labelledby="rule-heading">
+    <h2 id="rule-heading" class="mb-4 text-xl font-semibold tracking-tight">Quản lý luật cảnh báo</h2>
+    <form id="rule-form" class="items-start lg:grid-cols-[minmax(0,13fr)_minmax(0,7fr)]">
+      <div class="grid min-w-0 gap-4">
+        <section class="rule-panel">
+          <h3 class="rule-heading"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Thông tin luật</h3>
+          <div class="rule-fields">
+            <label>Luật cần chỉnh sửa <select id="rule-choice"></select></label>
+            <label>Mã luật <input name="code" maxlength="32" required></label>
+            <label>Tên luật <input name="name" maxlength="255" required></label>
+          </div>
+        </section>
+        <section class="rule-panel">
+          <h3 class="rule-heading"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 3v12m0 0a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm0-3a9 9 0 0 0 9-6m0 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" transform="translate(1 1)"/></svg>Điều kiện kích hoạt</h3>
+          <div class="rule-fields logic-builder">
+            <label>Nguồn <select name="source"><option value="SENSOR">Cảm biến</option><option value="SQI">Chỉ số sức khỏe đất</option><option value="ML">Mô hình AI</option><option value="DEVICE">Thiết bị</option></select></label>
+            <label>Chỉ tiêu <select name="parameter"><option value="PH">pH</option><option value="EC">Độ dẫn điện</option>
+              <option value="MOISTURE">Độ ẩm</option><option>N</option><option>P</option><option>K</option>
+              <option value="SOIL_TEMP">Nhiệt độ đất</option></select></label>
+            <label>Điều kiện <select name="condition"></select></label>
+            <label>Ngưỡng dưới <input name="low" type="number" step="any"></label>
+            <label>Ngưỡng trên <input name="high" type="number" step="any"></label>
+            <label>Lớp SQI <input name="classes" placeholder="POOR, FAIR"></label>
+          </div>
+        </section>
+        <section class="rule-panel">
+          <h3 class="rule-heading"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Thời gian đánh giá</h3>
+          <div class="rule-fields">
+            <label>Cửa sổ đánh giá <span class="input-suffix"><input name="windowMinutes" type="number" min="1" value="60" aria-describedby="rule-window-unit" required><span id="rule-window-unit">phút</span></span></label>
+            <label>Chờ trước khi lặp <span class="input-suffix"><input name="cooldownMinutes" type="number" min="0" value="360" aria-describedby="rule-cooldown-unit" required><span id="rule-cooldown-unit">phút</span></span></label>
+          </div>
+        </section>
+        <section class="rule-panel">
+          <h3 class="rule-heading"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0ZM12 9v4m0 4h.01"/></svg>Mức độ và khuyến nghị</h3>
+          <fieldset class="grid gap-2">
+            <legend class="mb-2 text-sm font-medium text-slate-700">Mức độ</legend>
+            <div class="flex flex-wrap gap-2">
+              <label class="severity-option" data-level="LOW"><input type="radio" name="severity" value="LOW" required><span>Thấp</span></label>
+              <label class="severity-option" data-level="MEDIUM"><input type="radio" name="severity" value="MEDIUM" checked><span>Trung bình</span></label>
+              <label class="severity-option" data-level="HIGH"><input type="radio" name="severity" value="HIGH"><span>Cao</span></label>
+              <label id="rule-critical" class="severity-option" data-level="HIGH" hidden><input type="radio" name="severity" value="CRITICAL" disabled><span>Khẩn cấp</span></label>
+            </div>
+          </fieldset>
+          <label>Khuyến nghị <textarea name="recommendation" rows="3" maxlength="2000" placeholder="Hướng dẫn xử lý khi luật được kích hoạt"></textarea></label>
+        </section>
+      </div>
+      <aside class="rule-panel lg:sticky lg:top-6" aria-labelledby="rule-summary-title">
+        <h3 id="rule-summary-title" class="rule-heading"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Zm0 0v6h6M8 13h8m-8 4h8"/></svg>Tóm tắt &amp; Xem trước luật</h3>
+        <label class="rule-toggle">
+          <span>Kích hoạt luật</span>
+          <input name="active" type="checkbox" role="switch" checked>
+          <span class="switch-track" aria-hidden="true"></span>
+        </label>
+        <div class="rounded-xl bg-slate-50 p-4 text-sm leading-relaxed" aria-live="polite" aria-atomic="true">
+          <p id="rule-preview" class="font-medium"></p>
+          <p id="rule-preview-cooldown" class="mt-2 text-slate-600"></p>
+          <p id="rule-preview-recommendation" class="mt-2 break-words text-slate-600"></p>
+        </div>
+        <button id="rule-save" class="w-full">Lưu luật</button>
+        <p id="rule-feedback" role="status"></p>
+      </aside>
+    </form>
+  </section>
+</main>
+<script type="module" src="/workspace.js"></script>
+</html>
