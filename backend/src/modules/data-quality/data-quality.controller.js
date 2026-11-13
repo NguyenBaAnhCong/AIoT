@@ -1,0 +1,12 @@
+import { ok, created, parsePaging } from '../../utils/response.js';
+import * as service from './data-quality.service.js';
+export const rules=async(_req,res)=>ok(res,await service.rules());
+export const createRule=async(req,res)=>created(res,await service.createRule(req.body));
+export const updateRule=async(req,res)=>ok(res,await service.updateRule(req.params.id,req.body));
+export const run=async(req,res)=>created(res,await service.run(req.body.from,req.body.to,req.user?.id,req.body.max_delay));
+export const issues=async(req,res)=>{const p=parsePaging(req.query);const result=await service.issues({...req.query,...p});ok(res,result.rows,{page:p.page,limit:p.limit,total:result.total});};
+export const issueAction=async(req,res)=>ok(res,await service.issueAction(req.params.id,req.params.action,req.body,req.user?.id));
+export const audit=async(req,res)=>{const p=parsePaging(req.query);const result=await service.audit({...req.query,...p});ok(res,result.rows,{page:p.page,limit:p.limit,total:result.total});};
+export const stats=async(req,res)=>ok(res,await service.stats(req.query.from,req.query.to));
+export const checks=async(_req,res)=>ok(res,await service.checks());
+export const kpis=async(_req,res)=>ok(res,await service.kpis());
