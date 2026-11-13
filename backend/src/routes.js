@@ -1,15 +1,23 @@
 // Nơi gắn route của từng module. MỖI THÀNH VIÊN chỉ thêm dòng cho module của mình.
 import { Router } from 'express';
+import { accessLog } from './middleware/accessLog.js';
 import systemRoutes from './modules/system/system.routes.js';
+import authRoutes from './modules/auth/auth.routes.js';
+import apiKeyRoutes from './modules/api-keys/api-keys.routes.js';
 import mlRoutes from './modules/ml/ml.routes.js';
 import dataQualityRoutes from './modules/data-quality/data-quality.routes.js';
 import datasetRoutes from './modules/dataset/dataset.routes.js';
 
 const api = Router();
 
+api.use(accessLog);
+
 api.use('/', systemRoutes);
-api.use('/ml', mlRoutes); // TV6
-api.use('/quality', dataQualityRoutes); // TV4
-api.use('/datasets', datasetRoutes); // TV4
+api.use('/auth', authRoutes);            // TV1
+api.use('/api-keys', apiKeyRoutes);      // TV1
+api.use('/ml', mlRoutes);                // TV6
+api.use('/quality', dataQualityRoutes);  // TV4
+api.use('/datasets', datasetRoutes);     // TV4
+// TV2, TV3, TV5: thêm dòng của mình ở đây (không sửa dòng người khác)
 
 export default api;
