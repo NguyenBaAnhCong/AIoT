@@ -1,0 +1,51 @@
+# Edge-AIoT Biochar – môi trường phát triển
+#   docker compose up -d db            -> chỉ chạy PostgreSQL (khuyến nghị khi dev)
+#   docker compose up -d --build       -> chạy cả database + backend
+#   docker compose down -v             -> xóa toàn bộ, kể cả dữ liệu (để nạp lại từ đầu)
+name: edge-aiot-biochar
+
+services:
+  db:
+    image: postgres:16
+    container_name: biochar-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-biochar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-biochar_dev_pw}
+      POSTGRES_DB: ${POSTGRES_DB:-edge_aiot_biochar}
+      SEED_DEMO: ${SEED_DEMO:-true}
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Các file trong init/ chỉ chạy MỘT LẦN, khi volume pgdata còn trống
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+      - ./database/seed:/seed:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build: ./backend
+    container_name: biochar-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 4000
+      DATABASE_URL: postgres://${POSTGRES_USER:-biochar}:${POSTGRES_PASSWORD:-biochar_dev_pw}@db:5432/${POSTGRES_DB:-edge_aiot_biochar}
+      JWT_SECRET: ${JWT_SECRET:-doi-chuoi-nay-trong-file-env}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      MIGRATIONS_DIR: /migrations
+    volumes:
+      - ./database/migrations:/migrations:ro
+    ports:
+      - "${BACKEND_PORT:-4000}:4000"
+
+volumes:
+  pgdata:
