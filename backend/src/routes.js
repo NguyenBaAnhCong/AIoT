@@ -7,6 +7,10 @@ import apiKeyRoutes from './modules/api-keys/api-keys.routes.js';
 import mlRoutes from './modules/ml/ml.routes.js';
 import dataQualityRoutes from './modules/data-quality/data-quality.routes.js';
 import datasetRoutes from './modules/dataset/dataset.routes.js';
+import farmRoutes from './modules/farm/farm.routes.js';
+import experimentRoutes from './modules/experiment/experiment.routes.js';
+import biocharRoutes from './modules/biochar/biochar.routes.js';
+import laboratoryRoutes from './modules/laboratory/laboratory.routes.js';
 
 import tv5Routes from './modules/tv5/tv5.routes.js';
 
@@ -21,6 +25,10 @@ api.use('/ml', mlRoutes);                // TV6
 api.use('/quality', dataQualityRoutes);  // TV4
 api.use('/datasets', datasetRoutes);     // TV4
 api.use('/tv5', tv5Routes);              // TV5
-// TV2, TV3: thêm dòng của mình ở đây (không sửa dòng người khác)
+api.use('/farm', farmRoutes);            // TV3
+api.use('/experiment', experimentRoutes);// TV3
+api.use('/biochar', biocharRoutes);      // TV3
+api.use('/laboratory', laboratoryRoutes);// TV3
+// TV2: thêm dòng của mình ở đây (không sửa dòng người khác)
 
 export default api;
