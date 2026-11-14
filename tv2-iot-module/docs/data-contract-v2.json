@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "message_id": "550e8400-e29b-41d4-a716-446655440001",
+  "gateway_id": "GW-001",
+  "device_id": "SN-001",
+  "sequence": 1,
+  "captured_at": "2026-11-13T16:00:00.000Z",
+  "metrics": {
+    "temperature_c": 28.5,
+    "humidity_pct": 75.2,
+    "soil_moisture_pct": 62.5,
+    "light_lux": 1200
+  },
+  "metadata": {
+    "battery_v": 3.7,
+    "rssi_dbm": -65
+  }
+}
