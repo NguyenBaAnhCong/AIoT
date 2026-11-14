@@ -1,11 +1,13 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import ExcelJS from 'exceljs';
 import PDFDocument from 'pdfkit';
 import { actor, fail, transaction, uuid, validDate } from './db.mjs';
 
-const reportDir = new URL('./.reports/', import.meta.url);
+const reportDir = process.env.TV5_REPORT_DIR
+  ? pathToFileURL(join(process.env.TV5_REPORT_DIR, '/'))
+  : new URL('./.reports/', import.meta.url);
 const titles = {
   TECHNICAL: 'Báo cáo kỹ thuật',
   ECONOMIC: 'Báo cáo kinh tế',
@@ -121,7 +123,8 @@ function pdf(title, scope, headings, rows) {
   });
 }
 
-export async function createReport(db, body) {
+export async function createReport(db, body, options) {
+  const fileBase = options?.fileBase ?? '/reports';
   const { type, format, experiment, treatment = null, season = null, from = null, to = null } = body;
   if (!Object.hasOwn(titles, type) || !['PDF','XLSX'].includes(format) || !uuid.test(experiment) ||
       (treatment && !uuid.test(treatment)) || (season && !uuid.test(season)) ||
@@ -129,7 +132,7 @@ export async function createReport(db, body) {
       (from && to && from > to) || (type !== 'TECHNICAL' && (from || to))) fail(400, 'Bộ lọc báo cáo không hợp lệ.');
   const scope = { experiment, treatment, season, from, to };
   const { report_id: id, description, rows } = await transaction(db, async client => {
-    const user = await actor(client);
+    const user = await actor(client, options?.userId);
     const { rows: [names] } = await client.query(`
       SELECT e.experiment_code,t.treatment_code,s.season_code
       FROM experiment.experiments e
@@ -162,21 +165,24 @@ export async function createReport(db, body) {
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING report_id
     `, [type, titles[type], experiment, season, from, to, scope, format, user]);
     return { ...report, description, rows };
-  });
+  }, options);
+  const updateReport = (sql, params) => options?.runTransaction
+    ? options.runTransaction(client => client.query(sql, params))
+    : db.query(sql, params);
   const extension = format.toLowerCase();
   const filename = `${id}.${extension}`;
   try {
-    await db.query("UPDATE reporting.reports SET status='GENERATING' WHERE report_id=$1", [id]);
+    await updateReport("UPDATE reporting.reports SET status='GENERATING' WHERE report_id=$1", [id]);
     const render = format === 'PDF' ? pdf : spreadsheet;
     const buffer = await render(titles[type], description, columns[type], rows);
     await mkdir(reportDir, { recursive: true });
     await writeFile(new URL(filename, reportDir), buffer, { flag: 'wx' });
-    await db.query("UPDATE reporting.reports SET status='READY',file_uri=$2,generated_at=now() WHERE report_id=$1",
-      [id, `/reports/${id}/file`]);
+    await updateReport("UPDATE reporting.reports SET status='READY',file_uri=$2,generated_at=now() WHERE report_id=$1",
+      [id, `${fileBase}/${id}/file`]);
     return { report_id: id, status: 'READY' };
   } catch (error) {
     console.error('Report:', error.message);
-    await db.query(`UPDATE reporting.reports SET status='FAILED',
+    await updateReport(`UPDATE reporting.reports SET status='FAILED',
       parameters=parameters || '{"error":"Không tạo được tệp báo cáo. Xem log Node.js."}'::jsonb WHERE report_id=$1`, [id]);
     return { report_id: id, status: 'FAILED' };
   }
