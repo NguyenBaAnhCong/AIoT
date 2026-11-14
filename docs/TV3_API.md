@@ -41,6 +41,8 @@ Mỗi tài nguyên có đủ 5 thao tác: `GET` danh sách (`?page=&limit=` + b�
 | `POST /laboratory/results/:id/approve` | | VERIFIED → APPROVED (`laboratory.approve`) |
 | `POST /laboratory/results/:id/reject` | body `{ "reason" }` | DRAFT/VERIFIED → REJECTED (`laboratory.approve`) |
 | `POST /laboratory/results/bulk/:action` | body `{ "ids": [...], "reason"? }` | verify/approve/reject nhiều kết quả; một lỗi thì hủy cả lô |
+| `GET /laboratory/results/import-template` | | Tải file Excel mẫu (sheet `KetQua` để điền, sheet `DanhMuc` liệt kê chỉ tiêu và phương pháp) |
+| `POST /laboratory/results/import` | body `{ "file_base64", "dry_run" }` | Nhập Excel (`laboratory.write`). `dry_run` mặc định `true` = chỉ kiểm tra. Trả `{ total, valid, errors: [{ line, field, message }], inserted, preview }` |
 | `GET /laboratory/sensor-vs-lab` | `plot_id`, `plot_code`, `parameter_code`, `from`, `to` | Đối chiếu cảm biến với lab, kèm `summary` sai lệch theo chỉ tiêu (màn hình 07) |
 
 ## Quy tắc nghiệp vụ
@@ -72,6 +74,22 @@ Mỗi tài nguyên có đủ 5 thao tác: `GET` danh sách (`?page=&limit=` + b�
 - **Nguyên tắc 4 mắt:** người phân tích không tự duyệt kết quả của mình (trừ ADMIN). Loại kết quả phải ghi lý do; lý do được ghi vào audit.
 - Mẫu tự chuyển `ANALYZING` khi có kết quả, và `COMPLETED` khi mọi kết quả đã chốt. Mẫu đã có kết quả thì không xóa được; mẫu bị loại thì không nhập thêm kết quả.
 
+**Nhập Excel kết quả lab**
+- Cột được nhận theo mã trong ngoặc ở tiêu đề, ví dụ `(sample_code)`. Bắt buộc: `sample_code`, `parameter_code`, `value`. Tùy chọn: `unit`, `method_code`, `replicate_no`, `analyzed_at`. Tối đa 2000 dòng; file gửi lên tối đa khoảng 1,4 MB.
+- Mỗi dòng đi qua đúng quy tắc của `POST /laboratory/results`. Báo lỗi theo số dòng trong Excel, gồm: mẫu hoặc phương pháp không tồn tại, giá trị không phải số, trùng dòng khác trong file, trùng kết quả đã có.
+- Chấp nhận dấu phẩy thập phân (`0,42`).
+- **Cả file cùng thành công hoặc cùng hủy.** Kết quả nhập vào ở trạng thái `DRAFT` để xác minh và duyệt.
+
+## Màn hình
+
+| Màn hình | File | Nội dung |
+|---|---|---|
+| 05 Thí nghiệm & nghiệm thức | `frontend/src/pages/s05-experiments/` | Chọn thí nghiệm, đổi trạng thái; tab nghiệm thức, ô và gán nghiệm thức, lịch sử bón (kết thúc lần áp dụng), giai đoạn sinh trưởng |
+| 06 Biochar & làm giàu | `frontend/src/pages/s06-biochar/` | Lô phụ phẩm, lô biochar (kết luận an toàn Đạt / Không đạt), lô làm giàu; nút **Truy xuất** hiện chuỗi 4 bước |
+| 07 Dữ liệu phòng thí nghiệm | `frontend/src/pages/s07-laboratory/` | Kết quả và duyệt hàng loạt (Xác minh / Duyệt / Loại); mẫu; nhập Excel; đối chiếu cảm biến (lệch trên 15% tô đỏ) |
+
+Phần dùng chung của 3 màn hình nằm ở `frontend/src/pages/tv3/`. Nút thêm, sửa, duyệt chỉ hiện khi người dùng có quyền tương ứng.
+
 ## Kiểm thử
 
-`backend/test/tv3.test.js` có 5 nhóm test: đọc dữ liệu, kiểm tra đầu vào, quy tắc ô/nghiệm thức, quy tắc biochar, luồng duyệt lab. Chạy bằng `cd backend && npm test`. Dữ liệu test tự xóa sau khi chạy.
+`backend/test/tv3.test.js` có 6 nhóm test: đọc dữ liệu, kiểm tra đầu vào, quy tắc ô/nghiệm thức, quy tắc biochar, luồng duyệt lab, nhập Excel. Chạy bằng `cd backend && npm test`. Dữ liệu test tự xóa sau khi chạy.

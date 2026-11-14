@@ -8,6 +8,8 @@ import * as farm from '../src/modules/farm/farm.service.js';
 import * as exp from '../src/modules/experiment/experiment.service.js';
 import * as bio from '../src/modules/biochar/biochar.service.js';
 import * as lab from '../src/modules/laboratory/laboratory.service.js';
+import { buildTemplate, importResults } from '../src/modules/laboratory/laboratory.import.js';
+import ExcelJS from 'exceljs';
 
 const tag = Math.random().toString(36).slice(2, 7).toUpperCase();
 const cleanup = [];
@@ -141,6 +143,42 @@ test('TV3 luồng duyệt kết quả lab DRAFT -> VERIFIED -> APPROVED và nguy
   const rej = await lab.changeResultStatus(r2.lab_result_id, 'reject', admin, { reason: 'Nhiễm bẩn' });
   assert.equal(rej.result_status, 'REJECTED');
   await assert.rejects(deleteRow(lab.samples, sample.sample_id, labtech), { status: 409 });
+});
+
+test('TV3 nhập Excel kết quả lab: báo lỗi từng dòng, kiểm tra thử không ghi, nhập thật cả file', async () => {
+  const { rows: [plot] } = await listRows(farm.plots, { plot_code: 'P02' });
+  const sample = await createRow(lab.samples, { sample_code: `X${tag}`, plot_id: plot.plot_id,
+    sampled_at: '2026-11-11T08:00:00+07:00' }, labtech);
+  cleanup.unshift(['laboratory.soil_samples', 'sample_id', sample.sample_id]);
+
+  const tpl = await buildTemplate();
+  const check = new ExcelJS.Workbook();
+  await check.xlsx.load(tpl);
+  assert.deepEqual(check.worksheets.map((w) => w.name), ['KetQua', 'DanhMuc']);
+
+  const file = async (rows) => {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('KetQua');
+    ws.addRow(['Mã mẫu (sample_code)*', 'Chỉ tiêu (parameter_code)*', 'Giá trị (value)*', 'Đơn vị (unit)', 'Phương pháp (method_code)']);
+    rows.forEach((r) => ws.addRow(r));
+    return Buffer.from(await wb.xlsx.writeBuffer()).toString('base64');
+  };
+  const bad = await importResults(await file([[sample.sample_code, 'PH', 5.5, null, 'M-PH'], ['KHONG-CO', 'PH', 5],
+    [sample.sample_code, 'PH', 6, null, 'M-PH'], [sample.sample_code, 'EC', 'abc', 'dS/m']]), labtech, { dryRun: false });
+  assert.equal(bad.inserted, 0);
+  assert.deepEqual(bad.errors.map((e) => e.line), [3, 4, 5]);
+  assert.equal((await listRows(lab.results, { sample_id: sample.sample_id })).rows.length, 0, 'có lỗi thì không ghi dòng nào');
+
+  const good = await file([[sample.sample_code, 'PH', 5.5, null, 'M-PH'], [sample.sample_code, 'EC', '0,4', 'dS/m']]);
+  const dry = await importResults(good, labtech, { dryRun: true });
+  assert.equal(dry.valid, 2);
+  assert.equal((await listRows(lab.results, { sample_id: sample.sample_id })).rows.length, 0, 'kiểm tra thử không ghi');
+  const real = await importResults(good, labtech, { dryRun: false });
+  assert.equal(real.inserted, 2);
+  const saved = (await listRows(lab.results, { sample_id: sample.sample_id })).rows;
+  assert.ok(saved.every((r) => r.result_status === 'DRAFT'));
+  assert.ok(saved.some((r) => r.parameter_code === 'EC' && r.value === 0.4));
+  await assert.rejects(importResults(Buffer.from('x').toString('base64'), labtech), { status: 400 });
 });
 
 test.after(async () => {

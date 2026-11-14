@@ -45,6 +45,7 @@ export const plots = {
   filters: {
     site_id: { sql: 't.site_id = $?', type: 'uuid' },
     site_code: { sql: 't.site_code = $?' },
+    plot_code: { sql: 't.plot_code = $?' },
     status: { sql: 't.status = $?', values: PLOT_STATUS },
     q: { sql: "t.plot_code ILIKE '%' || $? || '%'" },
   },
