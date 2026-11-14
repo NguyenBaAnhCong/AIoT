@@ -8,6 +8,8 @@ import mlRoutes from './modules/ml/ml.routes.js';
 import dataQualityRoutes from './modules/data-quality/data-quality.routes.js';
 import datasetRoutes from './modules/dataset/dataset.routes.js';
 
+import tv5Routes from './modules/tv5/tv5.routes.js';
+
 const api = Router();
 
 api.use(accessLog);
@@ -18,6 +20,7 @@ api.use('/api-keys', apiKeyRoutes);      // TV1
 api.use('/ml', mlRoutes);                // TV6
 api.use('/quality', dataQualityRoutes);  // TV4
 api.use('/datasets', datasetRoutes);     // TV4
-// TV2, TV3, TV5: thêm dòng của mình ở đây (không sửa dòng người khác)
+api.use('/tv5', tv5Routes);              // TV5
+// TV2, TV3: thêm dòng của mình ở đây (không sửa dòng người khác)
 
 export default api;

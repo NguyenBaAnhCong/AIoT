@@ -60,8 +60,10 @@ Chạy một lần với `npm.cmd run jobs -- --once`, hoặc chạy định k�
 - `TV5_SQI_MINUTES` mặc định 1.440 phút. Đặt thêm `TV5_DATASET_ID` bằng UUID của dataset version đang ở trạng thái `BUILT` để job tính SQI và gán nhãn. TV4 quản lý việc build và freeze.
 - Thêm `TV5_TELEGRAM_TOKEN` và `TV5_TELEGRAM_CHAT` trong `.env` để job gửi thông báo Telegram cho các cảnh báo vừa sinh. Khi gửi lỗi, job ghi log ID cảnh báo để kiểm tra. Lệnh đánh giá thủ công trên web dùng để thử luật và không gửi thông báo.
 
-## Ghép vào repo chung
+## Chạy trong repo chung
 
-- `sqi.mjs`, `sqi-admin.mjs`, `alerts.mjs`, `reports.mjs` chứa các truy vấn và thao tác của TV5. Định tuyến HTTP nằm trong `server.mjs`, giao diện nằm trong `public/`.
-- Khi ghép backend chung, dùng pool và middleware phân quyền của TV1. Thay cơ chế `TV5_USERNAME` dành cho demo cục bộ bằng ID của người dùng trong phiên đăng nhập. Dùng cùng một nơi lưu tệp báo cáo nếu có nhiều tiến trình backend.
-- Thêm migration trong `migrations/` vào luồng migration của nhóm. Commit mã và `package-lock.json`. Giữ `.env`, `node_modules/` và `.reports/` ở máy cục bộ.
+Từ thư mục chứa `docker-compose.yml`, chạy `docker compose up -d --build` rồi mở giao diện chung tại `http://localhost:8080`. Nếu chạy frontend bằng Vite, mở `http://localhost:5173` và chạy backend chung ở cổng 4000. Đăng nhập qua giao diện chung để mở **Sức khỏe đất**, **Cảnh báo & quyết định** và **Báo cáo**.
+
+Backend chung phục vụ API tại `/api/v1/tv5`, dùng `DATABASE_URL` và quyền của phiên đăng nhập. Hai migration TV5 nằm trong `database/migrations/` và được áp dụng khi backend chung khởi động theo mặc định. Nếu tắt chế độ tự chạy migration, chạy `npm run migrate` trong `backend/` với cấu hình database chung.
+
+Docker lưu tệp báo cáo TV5 trong volume `tv5_reports`. Khi chạy Node trực tiếp, có thể cấu hình đường dẫn tuyệt đối `TV5_REPORT_DIR` trong `.env` ở thư mục gốc dự án. Mặc định tệp nằm trong `tv5/.reports/`. PostgreSQL lưu thông tin và trạng thái báo cáo.

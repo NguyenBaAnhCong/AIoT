@@ -49,13 +49,13 @@ export async function listAlerts(db, filters) {
   return rows;
 }
 
-export async function changeAlert(db, id, { status, note }) {
+export async function changeAlert(db, id, { status, note }, options) {
   if (!uuid.test(id) || !['ACK', 'RESOLVED'].includes(status) ||
       (status === 'RESOLVED' && (typeof note !== 'string' || !note.trim() || note.length > 2000))) {
     fail(400, 'Trạng thái hoặc ghi chú xử lý không hợp lệ.');
   }
   return transaction(db, async client => {
-    const user = await actor(client);
+    const user = await actor(client, options?.userId);
     const result = status === 'ACK'
       ? await client.query(`UPDATE alert.alerts SET status='ACK', acknowledged_by=$2, acknowledged_at=now()
           WHERE alert_id=$1 AND status='OPEN'`, [id, user])
@@ -63,13 +63,13 @@ export async function changeAlert(db, id, { status, note }) {
           WHERE alert_id=$1 AND status='ACK'`, [id, user, note.trim()]);
     if (!result.rowCount) fail(409, 'Cảnh báo không tồn tại hoặc đã đổi trạng thái. Hãy tải lại.');
     return { status };
-  });
+  }, options);
 }
 
-export async function changeRecommendation(db, id, { status }) {
+export async function changeRecommendation(db, id, { status }, options) {
   if (!uuid.test(id) || !['ACCEPTED', 'REJECTED', 'DONE'].includes(status)) fail(400, 'Quyết định không hợp lệ.');
   return transaction(db, async client => {
-    const user = await actor(client);
+    const user = await actor(client, options?.userId);
     const result = status === 'DONE'
       ? await client.query(`UPDATE alert.recommendations SET status='DONE'
           WHERE recommendation_id=$1 AND status='ACCEPTED'`, [id])
@@ -77,14 +77,14 @@ export async function changeRecommendation(db, id, { status }) {
           WHERE recommendation_id=$1 AND status='PROPOSED'`, [id, status, user]);
     if (!result.rowCount) fail(409, 'Khuyến nghị không tồn tại hoặc đã đổi trạng thái. Hãy tải lại.');
     return { status };
-  });
+  }, options);
 }
 
 export async function listRules(db) {
   return (await db.query('SELECT * FROM alert.alert_rules ORDER BY rule_code')).rows;
 }
 
-export async function saveRule(db, id, body) {
+export async function saveRule(db, id, body, options) {
   const { code, name, source, parameter, condition, low, high, classes, windowMinutes,
     cooldownMinutes, severity, recommendation, active = true } = body;
   if ((id && !uuid.test(id)) || !/^[A-Za-z0-9_-]{1,32}$/.test(code || '') ||
@@ -104,7 +104,7 @@ export async function saveRule(db, id, body) {
     fail(400, 'Kiểm tra mã, nguồn, điều kiện, ngưỡng, mức độ và thời gian của luật.');
   }
   return transaction(db, async client => {
-    const user = await actor(client);
+    const user = await actor(client, options?.userId);
     const values = [code, name.trim(), source, source === 'SENSOR' ? parameter : null, condition,
       low ?? null, high ?? null, condition === 'CLASS_IN' ? classes : null, windowMinutes, cooldownMinutes,
       severity, recommendation?.trim() || null, active];
@@ -119,10 +119,10 @@ export async function saveRule(db, id, body) {
           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING rule_id`, [...values, user]);
     if (!rule) fail(404, 'Không tìm thấy luật cảnh báo.');
     return rule;
-  });
+  }, options);
 }
 
-export async function evaluate(db, at, { preview = false } = {}) {
+export async function evaluate(db, at, options = {}) {
   if (at != null && (typeof at !== 'string' || !Number.isFinite(Date.parse(at)))) fail(400, 'Thời điểm không hợp lệ.');
   return transaction(db, async client => {
     await client.query('SELECT pg_advisory_xact_lock(42005, 12)');
@@ -134,5 +134,5 @@ export async function evaluate(db, at, { preview = false } = {}) {
       WHERE xmin=pg_current_xact_id()::xid ORDER BY alert_id
     `);
     return { ...result, alerts };
-  }, { preview });
+  }, options);
 }

@@ -60,7 +60,7 @@ function buildUrl(path, params) {
   return url.pathname + url.search;
 }
 
-async function request(method, path, { body, params, retry = true } = {}) {
+async function request(method, path, { body, params, binary = false, retry = true } = {}) {
   const tokens = tokenStore.get();
   const res = await fetch(buildUrl(path, params), {
     method,
@@ -75,7 +75,7 @@ async function request(method, path, { body, params, retry = true } = {}) {
   if (res.status === 401 && retry && tokens?.refreshToken && !path.startsWith('/auth/')) {
     try {
       await refreshAccessToken();
-      return request(method, path, { body, params, retry: false });
+      return request(method, path, { body, params, binary, retry: false });
     } catch {
       tokenStore.clear();
       onSessionExpired();
@@ -83,6 +83,7 @@ async function request(method, path, { body, params, retry = true } = {}) {
     }
   }
 
+  if (res.ok && binary) return res.blob();
   if (res.status === 204) return { data: null };
   let json = null;
   try { json = await res.json(); } catch { /* không có nội dung JSON */ }
@@ -94,6 +95,15 @@ async function request(method, path, { body, params, retry = true } = {}) {
 }
 
 export const api = {
+  async download(path, filename) {
+    const blob = await request('GET', path, { binary: true });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  },
   get: async (path, params) => (await request('GET', path, { params })).data,
   page: (path, params) => request('GET', path, { params }), // { data, meta }
   post: async (path, body) => (await request('POST', path, { body: body ?? {} })).data,

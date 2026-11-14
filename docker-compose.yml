@@ -29,7 +29,9 @@ services:
       retries: 20
 
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: biochar-backend
     restart: unless-stopped
     depends_on:
@@ -42,11 +44,13 @@ services:
       JWT_SECRET: ${JWT_SECRET:-doi-chuoi-nay-trong-file-env}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
       MIGRATIONS_DIR: /migrations
+      TV5_REPORT_DIR: /reports
       TRUST_PROXY: "1"                    # đứng sau nginx: lấy đúng IP người dùng
       DEV_DEFAULT_PASSWORD: ${DEV_DEFAULT_PASSWORD:-Biochar@2026}
       SEED_DEV_PASSWORDS: ${SEED_DEV_PASSWORDS:-true}   # đặt false khi triển khai thật
     volumes:
       - ./database/migrations:/migrations:ro
+      - tv5_reports:/reports
     ports:
       - "${BACKEND_PORT:-4000}:4000"
 
@@ -72,3 +76,4 @@ services:
 
 volumes:
   pgdata:
+  tv5_reports:

@@ -34,7 +34,7 @@ export async function comparison(db, id) {
   `, [id])).rows;
 }
 
-export async function createDefinition(db, { code, name, coverage, indicators, classes }) {
+export async function createDefinition(db, { code, name, coverage, indicators, classes }, options) {
   if (typeof code !== 'string' || !/^[A-Za-z0-9._-]{1,32}$/.test(code) ||
       typeof name !== 'string' || !name.trim() || name.length > 255 ||
       !Number.isFinite(coverage) || coverage < 0 || coverage > 100 ||
@@ -56,7 +56,7 @@ export async function createDefinition(db, { code, name, coverage, indicators, c
     fail(400, 'Các lớp SQI phải nối tiếp nhau từ 0 đến cận trên 1.0001 để bao gồm điểm 1.');
   }
   return transaction(db, async client => {
-    await actor(client);
+    await actor(client, options?.userId);
     const { rows: [{ definition_id: id }] } = await client.query(`
       INSERT INTO sqi.sqi_definitions (version_code,name,min_indicator_coverage_pct)
       VALUES ($1,$2,$3) RETURNING definition_id
@@ -80,13 +80,13 @@ export async function createDefinition(db, { code, name, coverage, indicators, c
       if (!result.rowCount) fail(400, `Lớp ${c.class_code} chưa có trong danh mục nhãn sức khỏe đất.`);
     }
     return { definition_id: id };
-  });
+  }, options);
 }
 
-export async function activate(db, id) {
+export async function activate(db, id, options) {
   if (!uuid.test(id)) fail(400, 'Mã phiên bản không hợp lệ.');
   return transaction(db, async client => {
-    const user = await actor(client);
+    const user = await actor(client, options?.userId);
     await client.query('SELECT pg_advisory_xact_lock(42005, 4)');
     const next = await client.query(`SELECT 1 FROM sqi.sqi_definitions WHERE definition_id=$1 AND status='DRAFT'
       AND EXISTS (SELECT 1 FROM sqi.sqi_scores WHERE definition_id=$1)`, [id]);
@@ -95,10 +95,10 @@ export async function activate(db, id) {
     await client.query(`UPDATE sqi.sqi_definitions SET status='ACTIVE', approved_by=$2, valid_from=current_date
       WHERE definition_id=$1`, [id, user]);
     return { status: 'ACTIVE' };
-  });
+  }, options);
 }
 
-export async function calculate(db, definition, dataset, label = false, { preview = false } = {}) {
+export async function calculate(db, definition, dataset, label = false, options = {}) {
   if (!uuid.test(definition) || !uuid.test(dataset) || typeof label !== 'boolean') fail(400, 'Chọn phiên bản SQI và dataset.');
   return transaction(db, async client => {
     await client.query('SELECT pg_advisory_xact_lock(42005, 4)');
@@ -119,5 +119,5 @@ export async function calculate(db, definition, dataset, label = false, { previe
       return { ...result, ...labels };
     }
     return result;
-  }, { preview });
+  }, options);
 }

@@ -11,7 +11,8 @@ export const uuid = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
 export const validDate = date => typeof date === 'string' && /^(?!0000)\d{4}-\d{2}-\d{2}$/.test(date) &&
   new Date(`${date}T00:00:00Z`).toJSON()?.slice(0, 10) === date;
 
-export async function transaction(pool, run, { preview = false } = {}) {
+export async function transaction(pool, run, { preview = false, runTransaction } = {}) {
+  if (runTransaction) return runTransaction(run);
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -27,7 +28,8 @@ export async function transaction(pool, run, { preview = false } = {}) {
 }
 
 // Identity for the localhost demo. The team's authenticated routes should supply their session user.
-export async function actor(client) {
+export async function actor(client, userId) {
+  if (userId) return userId;
   const { rows: [user] } = await client.query(
     'SELECT user_id FROM iam.users WHERE username = $1', [process.env.TV5_USERNAME || 'researcher01'],
   );
