@@ -1,0 +1,22 @@
+/* Kiểu riêng của màn hình 05, 06, 07 (TV3). Chỉ dùng biến màu trong styles.css. */
+.tv3-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; flex-wrap: wrap; }
+.tv3-tab { background: none; border: none; border-bottom: 2px solid transparent; padding: 8px 14px; cursor: pointer;
+  color: var(--muted); font: inherit; }
+.tv3-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+.tv3-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px 14px; }
+.tv3-form .field input[type='checkbox'] { width: auto; }
+.tv3-drawer { margin: 12px 0 4px; padding: 14px; border: 1px dashed var(--border); border-radius: 8px; background: var(--bg); }
+.tv3-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tv3-toolbar { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px; }
+.tv3-toolbar .field { min-width: 160px; }
+.tv3-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.tv3-chain { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; align-items: stretch; }
+.tv3-step { border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--surface); position: relative; }
+.tv3-step h3 { margin: 0 0 6px; font-size: 14px; color: var(--primary); }
+.tv3-step dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 13px; }
+.tv3-step dt { color: var(--muted); }
+.tv3-step dd { margin: 0; }
+.tv3-errors td:first-child { white-space: nowrap; font-weight: 600; }
+.tv3-diff-bad { color: var(--bad, #b42318); font-weight: 600; }
+.tv3-diff-ok { color: var(--ok); }
+.tv3-selected { background: var(--primary-soft); }

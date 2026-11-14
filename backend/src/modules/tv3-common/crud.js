@@ -127,23 +127,26 @@ function parseBody(schema, body) {
 
 const jsonify = (v) => (v !== null && typeof v === 'object' && !(v instanceof Date) ? JSON.stringify(v) : v);
 
-export async function createRow(def, body, user) {
+/** Thêm một dòng trong transaction có sẵn (dùng chung cho tạo đơn lẻ và nhập Excel). Trả về id. */
+export async function insertRow(def, body, user, client) {
   const data = parseBody(def.schema, body);
-  return withUserTx(user?.id, async (client) => {
-    const ctx = { client, user, existing: null };
-    if (def.defaults) Object.assign(data, await def.defaults(data, ctx));
-    await checkRefs(def, data, client);
-    if (def.check) await def.check(data, ctx);
-    const cols = Object.keys(data);
-    const { rows } = await client.query(
-      `INSERT INTO ${def.table} (${cols.join(', ')}) VALUES (${cols.map((_, i) => `$${i + 1}`).join(', ')})
-       RETURNING ${def.pk}`,
-      cols.map((c) => jsonify(data[c])),
-    );
-    const id = rows[0][def.pk];
-    if (def.afterWrite) await def.afterWrite({ ...data, [def.pk]: id }, ctx);
-    return getRow(def, id, client);
-  });
+  const ctx = { client, user, existing: null };
+  if (def.defaults) Object.assign(data, await def.defaults(data, ctx));
+  await checkRefs(def, data, client);
+  if (def.check) await def.check(data, ctx);
+  const cols = Object.keys(data);
+  const { rows } = await client.query(
+    `INSERT INTO ${def.table} (${cols.join(', ')}) VALUES (${cols.map((_, i) => `$${i + 1}`).join(', ')})
+     RETURNING ${def.pk}`,
+    cols.map((c) => jsonify(data[c])),
+  );
+  const id = rows[0][def.pk];
+  if (def.afterWrite) await def.afterWrite({ ...data, [def.pk]: id }, ctx);
+  return id;
+}
+
+export async function createRow(def, body, user) {
+  return withUserTx(user?.id, async (client) => getRow(def, await insertRow(def, body, user, client), client));
 }
 
 export async function updateRow(def, id, body, user) {
