@@ -50,7 +50,7 @@ export default function Page() {
   const options = useApi(() => can('reporting.write') ? api.get(reports + '/options') : null);
   const kpis = useApi(() => api.get(reports + '/kpis'));
   const action = useAction();
-  return <>
+  return <div className="tv5-page">
     <PageHeader title="Báo cáo" subtitle="Tổng hợp kết quả thí nghiệm và theo dõi KPI." />
     {can('reporting.write') && <Card title="Tạo báo cáo">
       <Load request={options}>{data => <ReportForm options={data} action={action} reload={history.reload} />}</Load>
@@ -73,5 +73,5 @@ export default function Page() {
         ['measured_value', 'Kết quả lưu gần nhất', row => formatNumber(row.measured_value)],
       ])} />}</Load>
     </Card>
-  </>;
+  </div>;
 }

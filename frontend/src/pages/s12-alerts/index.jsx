@@ -64,7 +64,7 @@ function AlertList({ list, summary, writable, action, setFilters, refresh }) {
       <Stat label="Đã giải quyết" value={data.resolved} tone="ok" />
     </div>}</Load>
     <Card title="Danh sách cảnh báo">
-      <form className="grid-3" onSubmit={event => {
+      <form className="grid-3 action-fields" onSubmit={event => {
         event.preventDefault();
         setSelected('');
         setFilters(Object.fromEntries(new FormData(event.currentTarget)));
@@ -72,7 +72,7 @@ function AlertList({ list, summary, writable, action, setFilters, refresh }) {
         <Field label="Trạng thái"><select name="status"><Options values={statuses} blank="Tất cả" /></select></Field>
         <Field label="Mức độ"><select name="severity"><Options values={severities} blank="Tất cả" /></select></Field>
         <Field label="Nguồn"><select name="source"><Options values={[...sources, ['DATA_QUALITY', 'Chất lượng dữ liệu']]} blank="Tất cả" /></select></Field>
-        <div><Button disabled={list.loading}>Lọc cảnh báo</Button></div>
+        <div><Button variant="primary" disabled={list.loading}>Lọc cảnh báo</Button></div>
       </form>
       <Load request={list}>{rows => <DataTable rowKey="alert_id" rows={rows} columns={columns([
         ['message', 'Cảnh báo', row => <Button size="sm" onClick={() => setSelected(row.alert_id)}>{row.message}</Button>],
@@ -116,7 +116,7 @@ export default function Page() {
   const rules = useApi(() => api.get(rulesPath));
   const action = useAction();
   const refresh = () => Promise.all([list.reload(), summary.reload()]);
-  return <>
+  return <div className="tv5-page">
     <PageHeader title="Cảnh báo & quyết định" actions={<>
       <Button variant={tab === 'list' ? 'primary' : 'default'} onClick={() => setTab('list')}>Danh sách cảnh báo</Button>
       <Button variant={tab === 'rules' ? 'primary' : 'default'} onClick={() => setTab('rules')}>Luật cảnh báo</Button>
@@ -124,7 +124,7 @@ export default function Page() {
     {action.feedback}
     {tab === 'list' ? <AlertList {...{ list, summary, writable, action, setFilters, refresh }} /> : <>
       {writable && <Card title="Đánh giá luật cảnh báo">
-        <form className="grid-3" onSubmit={event => {
+        <form className="grid-3 action-fields" onSubmit={event => {
           event.preventDefault();
           const at = new FormData(event.currentTarget).get('at');
           action.run(async () => {
@@ -134,10 +134,10 @@ export default function Page() {
           });
         }}>
           <Field label="Thời điểm đánh giá (giờ Việt Nam)"><input name="at" type="datetime-local" /></Field>
-          <div><Button loading={action.busy}>Đánh giá</Button></div>
+          <div><Button variant="primary" loading={action.busy}>Đánh giá</Button></div>
         </form>
       </Card>}
       <Rules request={rules} action={action} writable={writable} />
     </>}
-  </>;
+  </div>;
 }
