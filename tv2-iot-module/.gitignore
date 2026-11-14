@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.*
+!.env.example
+
+*.sqlite
+*.sqlite3
+*.db
+*.log
+
+dist/
+coverage/
+.DS_Store
+.vscode/
+.idea/
