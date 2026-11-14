@@ -39,7 +39,7 @@ Mở http://localhost:5173 và đăng nhập. Backend tự áp migration mới v
 
 | Tài khoản demo | Vai trò | Mật khẩu |
 |---|---|---|
-| `admin` | ADMIN (toàn quyền) | `Biochar@2026` |
+| `admin` | ADMIN | `Biochar@2026` |
 | `researcher01` | RESEARCHER | `Biochar@2026` |
 | `labtech01` | LAB_TECH | `Biochar@2026` |
 
