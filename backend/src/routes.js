@@ -11,7 +11,6 @@ import farmRoutes from './modules/farm/farm.routes.js';
 import experimentRoutes from './modules/experiment/experiment.routes.js';
 import biocharRoutes from './modules/biochar/biochar.routes.js';
 import laboratoryRoutes from './modules/laboratory/laboratory.routes.js';
-import gatewayRoutes from './modules/gateway/gateway.routes.js';
 
 import tv5Routes from './modules/tv5/tv5.routes.js';
 
@@ -30,7 +29,6 @@ api.use('/farm', farmRoutes);            // TV3
 api.use('/experiment', experimentRoutes);// TV3
 api.use('/biochar', biocharRoutes);      // TV3
 api.use('/laboratory', laboratoryRoutes);// TV3
-api.use('/gateway', gatewayRoutes);      // TV2
 // TV2: thêm dòng của mình ở đây (không sửa dòng người khác)
 
 export default api;

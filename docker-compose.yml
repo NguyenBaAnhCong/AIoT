@@ -64,15 +64,15 @@ services:
       - "${FRONTEND_PORT:-8080}:80"      # mở http://localhost:8080
 
   # ---- TV2: bỏ dấu # khi gateway giả lập đã có Dockerfile (xem gateway-simulator/README.md) ----
-  gateway-simulator:
-    build: ./gateway-simulator
-    container_name: biochar-gateway
-    restart: unless-stopped
-    depends_on:
-      - backend
-    environment:
-      API_URL: http://backend:4000/api/v1
-      GATEWAY_API_KEY: ${GATEWAY_API_KEY:-}
+  # gateway-simulator:
+  #   build: ./gateway-simulator
+  #   container_name: biochar-gateway
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - backend
+  #   environment:
+  #     API_URL: http://backend:4000/api/v1
+  #     GATEWAY_API_KEY: ${GATEWAY_API_KEY:-}
 
 volumes:
   pgdata:
