@@ -1,0 +1,17 @@
+// 1) Thêm các dòng import này vào backend/src/routes.js (cùng chỗ với các import khác):
+import userRoutes from './modules/users/users.routes.js';
+import { rolesRouter, permissionsRouter, organizationsRouter } from './modules/roles/roles.routes.js';
+import auditRoutes from './modules/audit/audit.routes.js';
+import refRoutes from './modules/ref/ref.routes.js';
+import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
+import systemStatusRoutes from './modules/system/status.routes.js';
+
+// 2) Thêm các dòng này sau dòng api.use('/api-keys', apiKeyRoutes);
+api.use('/users', userRoutes);                  // TV1
+api.use('/roles', rolesRouter);                 // TV1
+api.use('/permissions', permissionsRouter);     // TV1
+api.use('/organizations', organizationsRouter); // TV1
+api.use('/audit', auditRoutes);                 // TV1
+api.use('/ref', refRoutes);                     // TV1
+api.use('/dashboard', dashboardRoutes);         // TV1
+api.use('/system', systemStatusRoutes);         // TV1
