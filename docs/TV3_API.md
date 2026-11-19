@@ -84,8 +84,8 @@ Mỗi tài nguyên có đủ 5 thao tác: `GET` danh sách (`?page=&limit=` + b�
 
 | Màn hình | File | Nội dung |
 |---|---|---|
-| 05 Thí nghiệm & nghiệm thức | `frontend/src/pages/s05-experiments/` | Chọn thí nghiệm, đổi trạng thái; tab nghiệm thức, ô và gán nghiệm thức, lịch sử bón (kết thúc lần áp dụng), giai đoạn sinh trưởng |
-| 06 Biochar & làm giàu | `frontend/src/pages/s06-biochar/` | Lô phụ phẩm, lô biochar (kết luận an toàn Đạt / Không đạt), lô làm giàu; nút **Truy xuất** hiện chuỗi 4 bước |
+| 05 Thí nghiệm & nghiệm thức | `frontend/src/pages/s05-experiments/` | Chọn thí nghiệm, đổi trạng thái; tab nghiệm thức, ô và gán nghiệm thức, lịch sử bón (kết thúc lần áp dụng), giai đoạn sinh trưởng (có ghi nhận giai đoạn mới). Tab **Khu, ô & mùa vụ** (`FarmTab.jsx`) quản lý khu, ô, cây trồng, mùa vụ |
+| 06 Biochar & làm giàu | `frontend/src/pages/s06-biochar/` | Lô phụ phẩm, lô biochar (kết luận an toàn Đạt / Không đạt), lô làm giàu; nút **Truy xuất** hiện chuỗi 4 bước; nhập **kim loại nặng** (As, Cd, Pb, Cr, Hg, Ni, Cu, Zn) để kết luận Đạt; nhập **kết quả đo** cho lô làm giàu |
 | 07 Dữ liệu phòng thí nghiệm | `frontend/src/pages/s07-laboratory/` | Kết quả và duyệt hàng loạt (Xác minh / Duyệt / Loại); mẫu; nhập Excel; đối chiếu cảm biến (lệch trên 15% tô đỏ) |
 
 Phần dùng chung của 3 màn hình nằm ở `frontend/src/pages/tv3/`. Nút thêm, sửa, duyệt chỉ hiện khi người dùng có quyền tương ứng.
@@ -93,3 +93,7 @@ Phần dùng chung của 3 màn hình nằm ở `frontend/src/pages/tv3/`. Nút 
 ## Kiểm thử
 
 `backend/test/tv3.test.js` có 6 nhóm test: đọc dữ liệu, kiểm tra đầu vào, quy tắc ô/nghiệm thức, quy tắc biochar, luồng duyệt lab, nhập Excel. Chạy bằng `cd backend && npm test`. Dữ liệu test tự xóa sau khi chạy.
+
+## Postman
+
+`docs/TV3.postman_collection.json` gồm toàn bộ đường dẫn trên (import vào Postman, điền biến `email`, `password`, chạy request *Login* để tự lưu `token`).

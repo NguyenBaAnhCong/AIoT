@@ -13,6 +13,16 @@ const FEEDSTOCK = [['LITCHI_PRUNING', 'Cành tỉa vải'], ['LITCHI_BRANCH', 'C
   ['LITCHI_PEEL', 'Vỏ vải'], ['LITCHI_SEED', 'Hạt vải'], ['MIXED', 'Hỗn hợp'], ['OTHER', 'Khác']];
 const FEEDSTOCK_LABEL = Object.fromEntries(FEEDSTOCK);
 const ENRICH = [['MICROBIAL', 'Vi sinh'], ['NUTRIENT', 'Dinh dưỡng'], ['COMPOST', 'Ủ compost'], ['MIXED', 'Kết hợp']];
+const METAL_KEYS = ['As', 'Cd', 'Pb', 'Cr', 'Hg', 'Ni', 'Cu', 'Zn'];
+const metalFields = METAL_KEYS.map((k) => ({ name: `hm_${k}`, label: `${k} (mg/kg)`, type: 'number' }));
+// gom các ô hm_* thành object heavy_metals_mg_kg (bỏ ô trống), trả về phần còn lại của body
+function packMetals(body, base = {}) {
+  const out = { ...body };
+  const hm = { ...base };
+  for (const k of METAL_KEYS) { if (out[`hm_${k}`] !== undefined) hm[k] = out[`hm_${k}`]; delete out[`hm_${k}`]; }
+  if (Object.keys(hm).length) out.heavy_metals_mg_kg = hm;
+  return out;
+}
 const metals = (m) => (m ? Object.entries(m).map(([k, v]) => `${k} ${fmtNum(v, 3)}`).join(', ') : '—');
 
 export default function BiocharPage() {
@@ -86,6 +96,7 @@ function Feedstock({ list, canWrite, onChanged }) {
 
 function Biochar({ list, feed, canWrite, onChanged, onTrace }) {
   const act = useAction();
+  const [metalsFor, setMetalsFor] = useState(null);
   const setSafety = (r, safety_status) => act.run(r.biochar_batch_id + safety_status, async () => {
     await api.patch(`/biochar/batches/${r.biochar_batch_id}`, { safety_status });
     onChanged();
@@ -102,6 +113,7 @@ function Biochar({ list, feed, canWrite, onChanged, onTrace }) {
     { key: 'act', title: '', render: (r) => (
       <div className="tv3-actions">
         <Button size="sm" onClick={() => onTrace(r)}>Truy xuất</Button>
+        {canWrite && r.safety_status !== 'FAILED' && <Button size="sm" onClick={() => setMetalsFor(r)}>Kim loại nặng</Button>}
         {canWrite && r.safety_status === 'PENDING' && <>
           <Button size="sm" loading={act.busy === r.biochar_batch_id + 'PASSED'} onClick={() => setSafety(r, 'PASSED')}>Đạt</Button>
           <Button size="sm" variant="danger" loading={act.busy === r.biochar_batch_id + 'FAILED'} onClick={() => setSafety(r, 'FAILED')}>Không đạt</Button>
@@ -112,7 +124,7 @@ function Biochar({ list, feed, canWrite, onChanged, onTrace }) {
   return (
     <Card title="Lô biochar" actions={
       <Toggle label="+ Lô biochar" allowed={canWrite}>{(close) => (
-        <QuickForm submitLabel="Thêm lô" onSubmit={async (b) => { await api.post('/biochar/batches', b); close(); onChanged(); }}
+        <QuickForm submitLabel="Thêm lô" onSubmit={async (b) => { await api.post('/biochar/batches', packMetals(b)); close(); onChanged(); }}
           fields={[
             { name: 'batch_code', label: 'Mã lô', required: true },
             { name: 'feedstock_batch_id', label: 'Lô phụ phẩm', required: true,
@@ -127,17 +139,31 @@ function Biochar({ list, feed, canWrite, onChanged, onTrace }) {
             { name: 'carbon_pct', label: 'Carbon (%)', type: 'number' },
             { name: 'ash_pct', label: 'Tro (%)', type: 'number' },
             { name: 'cec_cmol_kg', label: 'CEC (cmol/kg)', type: 'number' },
+            ...metalFields,
           ]} />
       )}</Toggle>
     }>
       <p className="muted small">Lô “Không đạt” không được dùng cho nghiệm thức hay làm giàu. Muốn kết luận “Đạt” phải có kết quả kim loại nặng.</p>
       <ErrorBox error={act.error || list.error} onRetry={list.error ? list.reload : undefined} />
+      {metalsFor && (
+        <div className="tv3-drawer">
+          <strong>Kết quả kim loại nặng – {metalsFor.batch_code}</strong>
+          <QuickForm key={metalsFor.biochar_batch_id} submitLabel="Lưu kết quả" fields={metalFields}
+            initial={Object.fromEntries(Object.entries(metalsFor.heavy_metals_mg_kg || {}).map(([k, v]) => [`hm_${k}`, v]))}
+            onSubmit={async (b) => {
+              await api.patch(`/biochar/batches/${metalsFor.biochar_batch_id}`, packMetals(b, metalsFor.heavy_metals_mg_kg || {}));
+              setMetalsFor(null); onChanged();
+            }} />
+          <Button size="sm" onClick={() => setMetalsFor(null)}>Đóng</Button>
+        </div>
+      )}
       <DataTable columns={columns} rows={list.data} loading={list.loading} rowKey="biochar_batch_id" />
     </Card>
   );
 }
 
 function Enrichment({ list, bio, canWrite, onChanged, onTrace }) {
+  const [measureFor, setMeasureFor] = useState(null);
   const columns = [
     { key: 'batch_code', title: 'Mã lô', render: (r) => <strong>{r.batch_code}</strong> },
     { key: 'biochar_batch_code', title: 'Từ lô biochar' },
@@ -147,7 +173,12 @@ function Enrichment({ list, bio, canWrite, onChanged, onTrace }) {
     { key: 'time', title: 'Thời gian', render: (r) => `${fmtDate(r.started_on)} → ${fmtDate(r.finished_on)}` },
     { key: 'incubation_days', title: 'Số ngày ủ' },
     { key: 'result_count', title: 'Kết quả đo' },
-    { key: 'act', title: '', render: (r) => <Button size="sm" onClick={() => onTrace(r)}>Truy xuất</Button> },
+    { key: 'act', title: '', render: (r) => (
+      <div className="tv3-actions">
+        <Button size="sm" onClick={() => onTrace(r)}>Truy xuất</Button>
+        {canWrite && <Button size="sm" onClick={() => setMeasureFor(r)}>+ Kết quả đo</Button>}
+      </div>
+    ) },
   ];
   return (
     <Card title="Lô làm giàu biochar" actions={
@@ -167,6 +198,25 @@ function Enrichment({ list, bio, canWrite, onChanged, onTrace }) {
       )}</Toggle>
     }>
       <ErrorBox error={list.error} onRetry={list.reload} />
+      {measureFor && (
+        <div className="tv3-drawer">
+          <strong>Kết quả đo – {measureFor.batch_code}</strong>
+          <QuickForm submitLabel="Lưu kết quả" initial={{ measured_on: new Date().toLocaleDateString('sv-SE') }}
+            onSubmit={async (b) => {
+              await api.post('/biochar/enrichment-results', { ...b, enrichment_batch_id: measureFor.enrichment_batch_id });
+              setMeasureFor(null); onChanged();
+            }}
+            fields={[
+              { name: 'parameter_code', label: 'Chỉ tiêu (vd CFU, N_TOTAL)', required: true },
+              { name: 'value', label: 'Giá trị', type: 'number', required: true },
+              { name: 'unit', label: 'Đơn vị', required: true },
+              { name: 'measured_on', label: 'Ngày đo', type: 'date', required: true },
+              { name: 'method', label: 'Phương pháp' },
+              { name: 'pass_flag', label: 'Đạt yêu cầu', type: 'checkbox' },
+            ]} />
+          <Button size="sm" onClick={() => setMeasureFor(null)}>Đóng</Button>
+        </div>
+      )}
       <DataTable columns={columns} rows={list.data} loading={list.loading} rowKey="enrichment_batch_id" />
     </Card>
   );

@@ -5,6 +5,7 @@ import { useAuth } from '../../auth/AuthContext';
 import DataTable from '../../components/DataTable';
 import { ErrorBox, Spinner } from '../../components/Feedback';
 import { Badge, Button, Card, Field, PageHeader, Stat } from '../../components/ui';
+import FarmTab from './FarmTab';
 import { fmtDate, fmtNum, QuickForm, StatusBadge, Tabs, Toggle, today, useAction } from '../tv3/shared';
 
 // Màn hình 05 – Thí nghiệm & nghiệm thức (TV3).
@@ -16,6 +17,7 @@ export default function ExperimentsPage() {
   const canWrite = can('experiment.write');
   const experiments = useApi(() => api.get('/experiment/experiments', { limit: 100 }), []);
   const [picked, setPicked] = useState('');
+  const [view, setView] = useState('experiments');
   const id = picked || experiments.data?.[0]?.experiment_id;
 
   return (
@@ -29,8 +31,12 @@ export default function ExperimentsPage() {
         )} />
       <ErrorBox error={experiments.error} onRetry={experiments.reload} />
       {experiments.loading && <Spinner />}
+      <Tabs value={view} onChange={setView} tabs={[['experiments', 'Thí nghiệm'], ['farm', 'Khu, ô & mùa vụ']]} />
+      {view === 'farm' && <FarmTab canWrite={can('farm.write')} />}
+      {view === 'experiments' && <>
       {canWrite && <Card><Toggle label="+ Thí nghiệm mới">{(close) => <NewExperiment onDone={() => { close(); experiments.reload(); }} />}</Toggle></Card>}
       {id && <ExperimentDetail key={id} id={id} canWrite={canWrite} onChanged={experiments.reload} />}
+      </>}
     </>
   );
 }
@@ -195,6 +201,9 @@ function History({ exp, canWrite }) {
 }
 
 function Stages() {
+  const { can } = useAuth();
+  const seasons = useApi(() => api.get('/farm/crop-seasons', { limit: 200 }), []);
+  const defs = useApi(() => api.get('/experiment/growth-stages', { limit: 200 }), []);
   const [plot, setPlot] = useState('');
   const plots = useApi(() => api.get('/farm/plots', { limit: 200 }), []);
   const stages = useApi(() => api.get('/experiment/plot-growth-stages', { plot_id: plot || undefined, limit: 200 }), [plot]);
@@ -207,7 +216,18 @@ function Stages() {
     { key: 'observed_by_name', title: 'Người ghi nhận' },
   ];
   return (
-    <Card title="Giai đoạn sinh trưởng theo ô">
+    <Card title="Giai đoạn sinh trưởng theo ô" actions={
+      <Toggle label="+ Ghi nhận giai đoạn" allowed={can('experiment.write')}>{(close) => (
+        <QuickForm submitLabel="Ghi nhận" onSubmit={async (b) => {
+          await api.post('/experiment/plot-growth-stages', { ...b, started_at: new Date(b.started_at).toISOString() });
+          close(); stages.reload();
+        }} fields={[
+          { name: 'crop_season_id', label: 'Mùa vụ', required: true, options: (seasons.data || []).map((c) => [c.crop_season_id, `${c.plot_code} · ${c.season_code}`]) },
+          { name: 'growth_stage_id', label: 'Giai đoạn', required: true, options: (defs.data || []).map((g) => [g.growth_stage_id, `${g.crop_code}: ${g.stage_order}. ${g.name_vi}`]) },
+          { name: 'started_at', label: 'Bắt đầu', type: 'datetime-local', required: true },
+        ]} />
+      )}</Toggle>
+    }>
       <div className="tv3-toolbar">
         <Field label="Ô">
           <select value={plot} onChange={(e) => setPlot(e.target.value)}>
