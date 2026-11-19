@@ -25,6 +25,9 @@ before(async () => {
 after(async () => {
   await query('DELETE FROM audit.access_logs WHERE user_id IN (SELECT user_id FROM iam.users WHERE username = $1)', [TEST_USER]);
   await query('DELETE FROM iam.users WHERE username = $1', [TEST_USER]);
+  const testKeyLabels = ['Gateway test', 'Audit test', 'chỉ đọc'];
+  await query('DELETE FROM audit.access_logs WHERE api_key_id IN (SELECT api_key_id FROM iam.api_keys WHERE label = ANY($1))', [testKeyLabels]);
+  await query('DELETE FROM iam.api_keys WHERE label = ANY($1)', [testKeyLabels]);
   await new Promise((r) => server.close(r));
   await pool.end();
 });
