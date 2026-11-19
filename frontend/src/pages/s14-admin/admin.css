@@ -1,0 +1,31 @@
+/* Giao diện riêng của màn hình 14 (chỉ thêm, không sửa styles.css dùng chung). */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 18px; flex-wrap: wrap; }
+.tab { padding: 9px 16px; text-decoration: none; color: var(--muted); border-bottom: 2px solid transparent; font-weight: 500; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--primary-dark); border-bottom-color: var(--primary); font-weight: 600; }
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
+.toolbar .field { min-width: 150px; } .toolbar .grow { flex: 1; min-width: 220px; }
+.toolbar select { padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; font: inherit; background: #fff; }
+.row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.pager { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(20, 28, 24, .45); display: grid; place-items: center; padding: 20px; z-index: 50; }
+.modal { background: var(--surface); border-radius: 12px; width: 100%; max-width: 520px; max-height: 90vh; overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+.modal-wide { max-width: 860px; }
+.modal-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); }
+.modal-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+.modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+.checks-col { display: flex; flex-direction: column; gap: 6px; }
+.roles-layout { display: grid; grid-template-columns: 260px 1fr; gap: 16px; align-items: start; }
+.role-item { display: block; width: 100%; text-align: left; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); cursor: pointer; font: inherit; margin-bottom: 8px; }
+.role-item:hover { background: #f0f2ee; } .role-item.active { border-color: var(--primary); background: var(--primary-soft); }
+.role-item small { display: block; color: var(--muted); }
+.perm-group { margin-bottom: 16px; } .perm-group h3 { margin: 0 0 6px; font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.perm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px 14px; }
+.perm-grid label { display: flex; gap: 6px; align-items: center; font-size: .92rem; }
+.perm-grid label.locked { color: var(--muted); }
+.json { background: #f4f6f3; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: .8rem; overflow: auto; max-height: 260px; margin: 0; }
+.diff td:nth-child(2) { color: var(--bad); } .diff td:nth-child(3) { color: var(--ok); }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
+.seg button { padding: 7px 14px; border: 0; background: var(--surface); cursor: pointer; font: inherit; } .seg button.on { background: var(--primary); color: #fff; }
+.mono { font-family: ui-monospace, Consolas, monospace; font-size: .85rem; }
+@media (max-width: 820px) { .roles-layout { grid-template-columns: 1fr; } }
