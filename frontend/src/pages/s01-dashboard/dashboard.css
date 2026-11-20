@@ -1,0 +1,24 @@
+/* Giao diện riêng của Dashboard (chỉ thêm, không sửa styles.css dùng chung). */
+.dash-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.dash-actions label { display: flex; gap: 6px; align-items: center; font-size: .88rem; color: var(--muted); }
+.stat a { text-decoration: none; color: inherit; display: block; }
+.stat-link:hover { box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+.section-title { margin: 22px 0 10px; font-size: 1rem; display: flex; align-items: baseline; gap: 10px; }
+.section-title small { font-weight: 400; color: var(--muted); }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-bottom: 8px; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.kpi.fail { border-color: #efc4c0; background: #fffafa; } .kpi.pend { border-style: dashed; }
+.kpi-head { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.kpi-name { font-size: .88rem; color: var(--muted); line-height: 1.3; }
+.kpi-value { font-size: 1.6rem; font-weight: 650; margin: 6px 0 2px; }
+.kpi-value small { font-size: .85rem; font-weight: 400; color: var(--muted); }
+.kpi-target { font-size: .82rem; color: var(--muted); }
+.bar { height: 6px; background: #eceeea; border-radius: 999px; margin-top: 10px; overflow: hidden; }
+.bar > span { display: block; height: 100%; border-radius: 999px; background: var(--ok); }
+.bar.bad > span { background: var(--bad); } .bar.warn > span { background: var(--warn); } .bar.none > span { background: #cfd4cc; }
+.sqi-cell { min-width: 130px; } .sqi-cell .bar { margin-top: 4px; }
+.num { text-align: right; font-variant-numeric: tabular-nums; } th.num { text-align: right; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); margin-right: 6px; }
+.dot.bad { background: var(--bad); } .dot.warn { background: var(--warn); }
+.infra { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: .82rem; color: var(--muted); margin-top: 8px; }
