@@ -15,7 +15,7 @@ export default function RuleEditor({ row, sources, severities, writable, close, 
   const [source, setSource] = useState(row.source ?? 'SENSOR');
   const [condition, setCondition] = useState(row.condition ?? conditions[source][0]);
   const low = ['LT', 'OUTSIDE'].includes(condition);
-  const high = ['GT', 'OUTSIDE'].includes(condition);
+  const high = ['GT', 'OUTSIDE', 'ANOMALY'].includes(condition);
   return <Card title={row.rule_id ? row.name : 'Thêm luật cảnh báo'} actions={<Button onClick={close}>Đóng</Button>}>
     <form onSubmit={event => {
       event.preventDefault();
@@ -39,7 +39,12 @@ export default function RuleEditor({ row, sources, severities, writable, close, 
           <Field label="Mức độ"><select name="severity" defaultValue={row.severity ?? 'MEDIUM'}><Options values={severities} /></select></Field>
           {source === 'SENSOR' && <Field label="Thông số"><select name="parameter" defaultValue={row.parameter_code ?? 'PH'}><Options values={['PH', 'EC', 'MOISTURE', 'N', 'P', 'K', 'SOIL_TEMP'].map(value => [value])} /></select></Field>}
           {low && <Field label="Ngưỡng dưới"><input name="low" type="number" step="any" required defaultValue={row.threshold_low} /></Field>}
-          {high && <Field label="Ngưỡng trên"><input name="high" type="number" step="any" required defaultValue={row.threshold_high} /></Field>}
+          {high && <Field label={condition === 'ANOMALY' ? 'Ngưỡng điểm bất thường (từ 0 đến 1)' : 'Ngưỡng trên'}>
+            <input key={condition} name="high" type="number" step="any" required
+              min={condition === 'ANOMALY' ? 0 : undefined}
+              max={condition === 'ANOMALY' ? 1 : undefined}
+              defaultValue={row.threshold_high ?? (condition === 'ANOMALY' ? 0.5 : undefined)} />
+          </Field>}
           {condition === 'CLASS_IN' && <Field label="Nhóm phân loại"><select name="classes" multiple required defaultValue={row.class_values ?? []}>
             <Options values={[[ 'VERY_GOOD', 'Rất tốt' ], ['GOOD', 'Tốt'], ['FAIR', 'Trung bình'], ['POOR', 'Kém']]} />
           </select></Field>}

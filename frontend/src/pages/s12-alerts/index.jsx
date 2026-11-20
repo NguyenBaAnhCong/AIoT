@@ -4,7 +4,7 @@ import DataTable from '../../components/DataTable';
 import { Badge, Button, Card, Field, PageHeader, Stat } from '../../components/ui';
 import { useApi } from '../../hooks/useApi';
 import { api } from '../../lib/api';
-import { apiRoot, columns, formatDate, Load, Options, useAction } from '../tv5/shared';
+import { apiRoot, columns, conditionNames, formatDate, healthNames, Load, Options, Pager, readableReason, useAction } from '../tv5/shared';
 import RuleEditor from './RuleEditor';
 
 const alerts = apiRoot + '/alerts';
@@ -13,7 +13,9 @@ const statuses = [['OPEN', 'Đang mở'], ['ACK', 'Đã xác nhận'], ['RESOLVE
 const sources = [['SENSOR', 'Cảm biến'], ['SQI', 'SQI'], ['ML', 'Mô hình AI'], ['DEVICE', 'Thiết bị']];
 const severities = [['LOW', 'Thấp'], ['MEDIUM', 'Trung bình'], ['HIGH', 'Cao'], ['CRITICAL', 'Khẩn cấp']];
 const decisions = { PROPOSED: 'Chờ quyết định', ACCEPTED: 'Đã chấp nhận', REJECTED: 'Đã từ chối', DONE: 'Hoàn thành' };
-const evidenceLabels = { n: 'Số mẫu', min: 'Thấp nhất', max: 'Cao nhất', window_min: 'Cửa sổ đánh giá (phút)', sqi: 'Điểm SQI', class: 'Phân loại', coverage_pct: 'Độ phủ (%)' };
+const evidenceLabels = { n: 'Số mẫu', min: 'Thấp nhất', max: 'Cao nhất', window_min: 'Cửa sổ đánh giá (phút)', sqi: 'Điểm SQI', class: 'Phân loại', coverage_pct: 'Độ phủ (%)',
+  prediction: 'Dự đoán', confidence: 'Độ tin cậy', anomaly_score: 'Điểm bất thường', period_start: 'Bắt đầu kỳ đo',
+  last_seen_at: 'Kết nối cuối', node_code: 'Mã thiết bị', anomaly: 'Bất thường' };
 const label = (options, value) => options.find(([code]) => code === value)?.[1] ?? value;
 
 function AlertDetail({ row, action, writable, refresh }) {
@@ -39,7 +41,7 @@ function AlertDetail({ row, action, writable, refresh }) {
     </form>}
     <h3>Khuyến nghị</h3>
     <DataTable rows={row.recommendations} columns={columns([
-      ['action', 'Đề xuất', item => <>{item.action}{item.rationale && <p className="muted">{item.rationale}</p>}</>],
+      ['action', 'Đề xuất', item => <>{item.action}{item.rationale && <p className="muted">{readableReason(item.rationale)}</p>}</>],
       ['status', 'Trạng thái', item => <Badge>{decisions[item.status] ?? item.status}</Badge>],
       ['decidedBy', 'Người quyết định', item => item.decidedBy ? item.decidedBy + ' · ' + formatDate(item.decidedAt) : '—'],
       ['decision', 'Thao tác', item => writable && (item.status === 'PROPOSED'
@@ -52,10 +54,13 @@ function AlertDetail({ row, action, writable, refresh }) {
 }
 
 function Evidence({ label, value }) {
-  return <><dt>{label}</dt><dd>{value == null ? '—' : typeof value === 'object' ? JSON.stringify(value) : String(value)}</dd></>;
+  return <><dt>{label}</dt><dd>{value == null ? '—' : typeof value === 'object'
+    ? <dl className="kv">{Object.entries(value).map(([key, item]) =>
+      <Evidence key={key} label={evidenceLabels[key] ?? key} value={item} />)}</dl>
+    : typeof value === 'boolean' ? (value ? 'Có' : 'Không') : healthNames[value] ?? String(value)}</dd></>;
 }
 
-function AlertList({ list, summary, writable, action, setFilters, refresh }) {
+function AlertList({ list, summary, writable, action, setFilters, setPage, refresh }) {
   const [selected, setSelected] = useState('');
   return <>
     <Load request={summary}>{data => <div className="grid-3">
@@ -74,14 +79,14 @@ function AlertList({ list, summary, writable, action, setFilters, refresh }) {
         <Field label="Nguồn"><select name="source"><Options values={[...sources, ['DATA_QUALITY', 'Chất lượng dữ liệu']]} blank="Tất cả" /></select></Field>
         <div><Button variant="primary" disabled={list.loading}>Lọc cảnh báo</Button></div>
       </form>
-      <Load request={list}>{rows => <DataTable rowKey="alert_id" rows={rows} columns={columns([
+      <Load request={list}>{({ data: rows, meta }) => <><DataTable rowKey="alert_id" rows={rows} columns={columns([
         ['message', 'Cảnh báo', row => <Button size="sm" onClick={() => setSelected(row.alert_id)}>{row.message}</Button>],
         ['plot_code', 'Ô đất'], ['created_at', 'Thời điểm', row => formatDate(row.created_at)],
         ['severity', 'Mức độ', row => <Badge tone={['HIGH', 'CRITICAL'].includes(row.severity) ? 'bad' : 'neutral'}>{label(severities, row.severity)}</Badge>],
         ['status', 'Trạng thái', row => label(statuses, row.status)],
-      ])} />}</Load>
+      ])} /><Pager meta={meta} onPage={page => { setSelected(''); setPage(page); }} /></>}</Load>
     </Card>
-    {list.data?.some(row => row.alert_id === selected) && <AlertDetail key={selected} row={list.data.find(row => row.alert_id === selected)} writable={writable} action={action} refresh={refresh} />}
+    {!list.loading && list.data?.data.some(row => row.alert_id === selected) && <AlertDetail key={selected} row={list.data.data.find(row => row.alert_id === selected)} writable={writable} action={action} refresh={refresh} />}
   </>;
 }
 
@@ -91,7 +96,7 @@ function Rules({ request, action, writable }) {
     <Card title="Luật cảnh báo" actions={writable && <Button onClick={() => setSelected({})}>Thêm luật</Button>}>
       <DataTable rows={rows} rowKey="rule_id" columns={columns([
         ['rule_code', 'Mã luật'], ['name', 'Tên luật'], ['source', 'Nguồn', row => label(sources, row.source)],
-        ['condition', 'Điều kiện'], ['severity', 'Mức độ', row => label(severities, row.severity)],
+        ['condition', 'Điều kiện', row => conditionNames[row.condition] ?? row.condition], ['severity', 'Mức độ', row => label(severities, row.severity)],
         ['is_active', 'Trạng thái', row => <Badge>{row.is_active ? 'Đang bật' : 'Đã tắt'}</Badge>],
         ['edit', 'Chi tiết', row => <Button size="sm" onClick={() => setSelected(row)}>{writable ? 'Chỉnh sửa' : 'Xem'}</Button>],
       ])} />
@@ -111,7 +116,9 @@ export default function Page() {
   const writable = can('alert.write');
   const [tab, setTab] = useState('list');
   const [filters, setFilters] = useState({});
-  const list = useApi(() => api.get(alerts, filters), [filters]);
+  const [page, setPage] = useState(1);
+  const applyFilters = values => { setPage(1); setFilters(values); };
+  const list = useApi(() => api.page(alerts, { ...filters, page, limit: 20 }), [filters, page]);
   const summary = useApi(() => api.get(alerts + '/summary'));
   const rules = useApi(() => api.get(rulesPath));
   const action = useAction();
@@ -122,7 +129,7 @@ export default function Page() {
       <Button variant={tab === 'rules' ? 'primary' : 'default'} onClick={() => setTab('rules')}>Luật cảnh báo</Button>
     </>} />
     {action.feedback}
-    {tab === 'list' ? <AlertList {...{ list, summary, writable, action, setFilters, refresh }} /> : <>
+    {tab === 'list' ? <AlertList {...{ list, summary, writable, action, setPage, refresh }} setFilters={applyFilters} /> : <>
       {writable && <Card title="Đánh giá luật cảnh báo">
         <form className="grid-3 action-fields" onSubmit={event => {
           event.preventDefault();

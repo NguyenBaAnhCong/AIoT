@@ -4,7 +4,7 @@ import DataTable from '../../components/DataTable';
 import { Badge, Button, Card, Field, PageHeader } from '../../components/ui';
 import { useApi } from '../../hooks/useApi';
 import { api } from '../../lib/api';
-import { apiRoot, columns, formatNumber, Load, Options, useAction } from '../tv5/shared';
+import { apiRoot, columns, formatNumber, healthNames, Load, Options, useAction } from '../tv5/shared';
 import Configuration from './Configuration';
 
 const sqi = apiRoot + '/sqi';
@@ -16,7 +16,8 @@ function ScoreDetail({ id, day }) {
   const detail = useApi(() => api.get(sqi + '/scores/' + id), [id]);
   return <aside className="tv5-chart-detail" aria-label="Chi tiết chỉ tiêu"><h3>Chi tiết chỉ tiêu · {shortDate(day)}</h3>
     <Load request={detail}>{data => <DataTable rows={data.indicators} columns={columns([
-      ['name', 'Chỉ tiêu'], ['source', 'Nguồn'], ['raw_value', 'Giá trị', row => formatNumber(row.raw_value) + ' ' + (row.unit ?? '')],
+      ['name', 'Chỉ tiêu'], ['source', 'Nguồn', row => <Badge>{row.source === 'LAB' ? 'Phòng thí nghiệm' : row.source === 'SENSOR' ? 'Cảm biến' : row.source}</Badge>],
+      ['raw_value', 'Giá trị', row => formatNumber(row.raw_value) + ' ' + (row.unit ?? '')],
       ['score', 'Điểm', row => formatNumber(row.score)], ['weight', 'Trọng số', row => formatNumber(row.weight)],
       ['weighted_score', 'Điểm có trọng số', row => formatNumber(row.weighted_score)],
     ])} />}</Load>
@@ -54,7 +55,7 @@ function History({ plot, definitionId, firstDay, lastDay }) {
           {latest && <div className="tv5-chart-summary">
             <span>Điểm {active ? shortDate(active.day) : 'gần nhất'}</span>
             <strong>{formatNumber(active ? active.sqi_value : latest.sqi_value)}</strong>
-            <Badge tone="ok">{(active ?? latest).health_class ?? '—'}</Badge>
+            <Badge>{healthNames[(active ?? latest).health_class] ?? (active ?? latest).health_class ?? '—'}</Badge>
             <span>{points.length} ngày có điểm</span>
           </div>}
           <div className={active ? 'tv5-chart-layout has-selection' : 'tv5-chart-layout'}>
@@ -94,7 +95,7 @@ function History({ plot, definitionId, firstDay, lastDay }) {
           <DataTable rows={rows} rowKey="sqi_score_id" columns={columns([
             ['day', 'Ngày', row => <Button size="sm" onClick={() => setSelected(row.sqi_score_id)}>{row.day}</Button>],
             ['sqi_value', 'Điểm', row => formatNumber(row.sqi_value)],
-            ['health_class', 'Phân loại', row => <Badge>{row.health_class ?? '—'}</Badge>],
+            ['health_class', 'Phân loại', row => <Badge>{healthNames[row.health_class] ?? row.health_class ?? '—'}</Badge>],
             ['coverage_pct', 'Độ phủ (%)', row => formatNumber(row.coverage_pct)],
             ['n_observations', 'Số mẫu'], ['treatment_code', 'Nghiệm thức'],
           ])} />

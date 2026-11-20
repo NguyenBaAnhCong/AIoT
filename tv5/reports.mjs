@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import ExcelJS from 'exceljs';
 import PDFDocument from 'pdfkit';
 import { actor, fail, transaction, uuid, validDate } from './db.mjs';
+import { pagedQuery } from './paging.mjs';
 
 const reportDir = process.env.TV5_REPORT_DIR
   ? pathToFileURL(join(process.env.TV5_REPORT_DIR, '/'))
@@ -33,9 +34,10 @@ export async function reportOptions(db) {
   return result;
 }
 
-export async function listReports(db) {
-  return (await db.query(`SELECT report_id,title,report_type,file_format,status,created_at,
-    parameters->>'error' AS error FROM reporting.reports ORDER BY created_at DESC LIMIT 100`)).rows;
+export async function listReports(db, paging) {
+  return pagedQuery(db, `SELECT report_id,title,report_type,file_format,status,created_at,
+    parameters->>'error' AS error FROM reporting.reports ORDER BY created_at DESC, report_id`,
+  [], paging, 'created_at DESC, report_id');
 }
 
 async function reportRows(db, type, { experiment, treatment, season, from, to }) {
