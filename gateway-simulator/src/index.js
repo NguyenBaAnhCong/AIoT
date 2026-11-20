@@ -1,13 +1,13 @@
 const API_URL = (process.env.API_URL || 'http://localhost:4000/api/v1').replace(/\/$/, '');
 const API_KEY = process.env.GATEWAY_API_KEY;
-const INTERVAL_MS = Number(process.env.SAMPLE_INTERVAL_MS || 15000);
+const INTERVAL_MS = Number(process.env.SAMPLE_INTERVAL_MS || 60000);
 
 if (!API_KEY) {
   console.error('GATEWAY_API_KEY chưa được cấu hình. Hãy đặt key trong file .env ở thư mục gốc.');
   process.exit(1);
 }
-if (!Number.isFinite(INTERVAL_MS) || INTERVAL_MS < 1000) {
-  console.error('SAMPLE_INTERVAL_MS phải là số từ 1000 trở lên.');
+if (!Number.isFinite(INTERVAL_MS) || INTERVAL_MS < 60000 || INTERVAL_MS > 900000) {
+  console.error('SAMPLE_INTERVAL_MS phải từ 60000 đến 900000 (1–15 phút).');
   process.exit(1);
 }
 

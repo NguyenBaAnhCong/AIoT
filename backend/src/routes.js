@@ -12,6 +12,8 @@ import experimentRoutes from './modules/experiment/experiment.routes.js';
 import biocharRoutes from './modules/biochar/biochar.routes.js';
 import laboratoryRoutes from './modules/laboratory/laboratory.routes.js';
 import gatewayRoutes from './modules/gateway/gateway.routes.js';
+import calibrationRoutes from './modules/calibration/calibration.routes.js';
+import devicesRoutes from './modules/devices/devices.routes.js';
 
 import tv5Routes from './modules/tv5/tv5.routes.js';
 
@@ -38,6 +40,8 @@ api.use('/experiment', experimentRoutes);// TV3
 api.use('/biochar', biocharRoutes);      // TV3
 api.use('/laboratory', laboratoryRoutes);// TV3
 api.use('/gateway', gatewayRoutes);      // TV2
+api.use('/calibration', calibrationRoutes); // TV2
+api.use('/devices', devicesRoutes); // TV2
 // TV2: thêm dòng của mình ở đây (không sửa dòng người khác)
 api.use('/users', userRoutes);                  // TV1
 api.use('/roles', rolesRouter);                 // TV1
