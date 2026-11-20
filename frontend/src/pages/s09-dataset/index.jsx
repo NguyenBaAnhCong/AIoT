@@ -6,7 +6,7 @@ import DataTable from '../../components/DataTable';
 import { ErrorBox } from '../../components/Feedback';
 import { Badge, Button, Card, Field, PageHeader, Stat } from '../../components/ui';
 import Pager from '../tv4/Pager';
-import './tv4.css';
+import '../tv4.css';
 
 const PAGE_SIZE = 10;
 const number = (v) => v == null ? '—' : Number(v).toLocaleString('vi-VN');
