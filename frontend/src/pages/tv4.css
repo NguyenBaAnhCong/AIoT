@@ -1,0 +1,23 @@
+.tv4-kpis { grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); }
+.tv4-filter-row { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.tv4-filter-row > .field { min-width: 150px; flex: 1 1 150px; }
+.tv4-filter-row > p { margin: 0 0 8px; }
+.tv4-filter-row input[type=date], .tv4-filter-row input[type=datetime-local], .tv4-filter-row input[type=text], .tv4-filter-row input[type=number] { width: 100%; min-width: 0; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; font: inherit; background: #fff; }
+.tv4-pager { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding-top: 14px; }
+.tv4-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.tv4-readiness { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.tv4-rule-create { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px; }
+.tv4-rule-create form { margin-top: 12px; }
+.tv4-rule-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+.tv4-correction { min-width: 250px; display: grid; gap: 6px; }
+.tv4-correction-grid { display: grid; grid-template-columns: repeat(4, minmax(58px, 1fr)); gap: 4px; }
+.tv4-correction-grid input, .tv4-correction > input, .tv4-label-control select { min-width: 0; width: 100%; padding: 5px 7px; border: 1px solid var(--border); border-radius: 6px; font: inherit; }
+.tv4-json { display: block; max-width: 280px; overflow-wrap: anywhere; font-size: .8rem; }
+.tv4-label-control { min-width: 165px; display: grid; grid-template-columns: minmax(100px, 1fr) auto; gap: 5px; }
+.tv4-label-control small { grid-column: 1 / -1; }
+.tv4-form { padding: 14px 0; border-top: 1px solid var(--border); }
+@media (max-width: 820px) {
+  .tv4-kpis { grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); }
+  .tv4-filter-row { align-items: stretch; }
+  .tv4-filter-row > .field { min-width: min(100%, 210px); }
+}

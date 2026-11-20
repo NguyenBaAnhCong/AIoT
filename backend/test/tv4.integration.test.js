@@ -27,6 +27,12 @@ test('TV4 dataset readiness and CSV source enforce the frozen valid version', as
   assert.equal(Number(readiness.leaking_groups), 0);
   const exported = await datasets.exportRows(version.dataset_version_id);
   assert.equal(exported.rows.length, Number(readiness.valid_records));
+  const records = await datasets.records(version.dataset_version_id, {limit: 5, offset: 0, valid: 'true'});
+  assert.ok(records.total >= records.rows.length);
+  assert.ok(records.rows.length <= 5);
+  assert.ok(records.rows.every((record) => record.valid_flag));
+  await assert.rejects(datasets.build(version.dataset_version_id), {status: 409});
+  await assert.rejects(datasets.label(version.dataset_version_id, '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000001'), {status: 409});
 });
 
 test('TV4 rejects missing dataset versions and invalid QC ranges', async () => {
