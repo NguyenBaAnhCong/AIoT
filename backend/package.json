@@ -9,7 +9,8 @@
     "dev": "node --watch --env-file-if-exists=../.env src/server.js",
     "start": "node src/server.js",
     "migrate": "node --env-file-if-exists=../.env src/migrate.js",
-    "test": "node --env-file-if-exists=../.env --test"
+    "test": "node --env-file-if-exists=../.env --test",
+    "jobs:tv5": "node --env-file-if-exists=../.env --import ./src/config/env.js ../tv5/jobs.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

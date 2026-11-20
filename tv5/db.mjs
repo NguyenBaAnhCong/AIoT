@@ -1,6 +1,9 @@
 import pg from 'pg';
 
-export const db = new pg.Pool({ connectionTimeoutMillis: 5000 });
+export const db = new pg.Pool({
+  connectionString: process.env.DATABASE_URL || undefined,
+  connectionTimeoutMillis: 5000,
+});
 db.on('error', error => console.error('PostgreSQL:', error.message));
 
 export function fail(status, message) {

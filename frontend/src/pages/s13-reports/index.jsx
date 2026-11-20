@@ -4,10 +4,11 @@ import DataTable from '../../components/DataTable';
 import { Badge, Button, Card, Field, PageHeader } from '../../components/ui';
 import { useApi } from '../../hooks/useApi';
 import { api } from '../../lib/api';
-import { apiRoot, columns, formatDate, formatNumber, Load, Options, useAction } from '../tv5/shared';
+import { apiRoot, columns, formatDate, formatNumber, Load, Options, Pager, useAction } from '../tv5/shared';
 
 const reports = apiRoot + '/reports';
 const types = [['TECHNICAL', 'Kỹ thuật'], ['ECONOMIC', 'Kinh tế'], ['ENVIRONMENTAL', 'Môi trường']];
+const reportStatuses = { READY: 'Sẵn sàng', FAILED: 'Tạo thất bại', QUEUED: 'Đang chờ', GENERATING: 'Đang tạo' };
 
 function ReportForm({ options, action, reload }) {
   const [experiment, setExperiment] = useState('');
@@ -25,7 +26,6 @@ function ReportForm({ options, action, reload }) {
   }}>
     <div className="grid-3">
       <Field label="Loại báo cáo"><select name="type" value={type} onChange={e => setType(e.target.value)}><Options values={types} /></select></Field>
-      <Field label="Định dạng"><select name="format"><Options values={[[ 'XLSX', 'Excel' ], ['PDF', 'PDF']]} /></select></Field>
       <Field label="Thí nghiệm"><select name="experiment" required value={experiment} onChange={e => setExperiment(e.target.value)}>
         <Options blank="Chọn thí nghiệm" values={(options.experiments ?? []).map(row => [row.experiment_id, row.title])} />
       </select></Field>
@@ -40,30 +40,40 @@ function ReportForm({ options, action, reload }) {
         <Field label="Đến ngày"><input name="to" type="date" /></Field>
       </>}
     </div>
+    <fieldset className="tv5-format-options">
+      <legend>Định dạng tệp</legend>
+      <label><input type="radio" name="format" value="XLSX" defaultChecked required /><span>Excel <small>.xlsx</small></span></label>
+      <label><input type="radio" name="format" value="PDF" /><span>PDF <small>.pdf</small></span></label>
+    </fieldset>
     <Button variant="primary" loading={action.busy}>Tạo báo cáo</Button>
   </form>;
 }
 
 export default function Page() {
   const { can } = useAuth();
-  const history = useApi(() => api.get(reports));
+  const [page, setPage] = useState(1);
+  const history = useApi(() => api.page(reports, { page, limit: 20 }), [page]);
   const options = useApi(() => can('reporting.write') ? api.get(reports + '/options') : null);
   const kpis = useApi(() => api.get(reports + '/kpis'));
   const action = useAction();
   return <div className="tv5-page">
     <PageHeader title="Báo cáo" subtitle="Tổng hợp kết quả thí nghiệm và theo dõi KPI." />
     {can('reporting.write') && <Card title="Tạo báo cáo">
-      <Load request={options}>{data => <ReportForm options={data} action={action} reload={history.reload} />}</Load>
+      <Load request={options}>{data => <ReportForm options={data} action={action} reload={async () => {
+        if (page === 1) await history.reload();
+        else setPage(1);
+      }} />}</Load>
     </Card>}
     {action.feedback}
     <Card title="Lịch sử báo cáo">
-      <Load request={history}>{rows => <DataTable rows={rows} rowKey="report_id" columns={columns([
+      <Load request={history}>{({ data: rows, meta }) => <><DataTable rows={rows} rowKey="report_id" columns={columns([
         ['title', 'Tên báo cáo'], ['created_at', 'Thời điểm', row => formatDate(row.created_at)],
-        ['file_format', 'Định dạng'], ['status', 'Trạng thái', row => <><Badge tone={row.status === 'FAILED' ? 'bad' : 'neutral'}>{row.status}</Badge>{row.error && <p>{row.error}</p>}</>],
+        ['file_format', 'Định dạng', row => <Badge>{row.file_format === 'XLSX' ? 'Excel' : row.file_format}</Badge>],
+        ['status', 'Trạng thái', row => <><Badge tone={row.status === 'FAILED' ? 'bad' : row.status === 'READY' ? 'ok' : 'neutral'}>{reportStatuses[row.status] ?? row.status}</Badge>{row.error && <p>{row.error}</p>}</>],
         ['file', 'Tệp', row => row.status === 'READY' && <Button size="sm" disabled={action.busy} onClick={() => action.run(async () => {
           await api.download(reports + '/' + row.report_id + '/file', row.report_id + '.' + row.file_format.toLowerCase());
         })}>Tải tệp</Button>],
-      ])} />}</Load>
+      ])} /><Pager meta={meta} onPage={setPage} /></>}</Load>
     </Card>
     <Card title="KPI nghiệm thu">
       <Load request={kpis}>{rows => <DataTable rows={rows} rowKey="kpi_code" columns={columns([

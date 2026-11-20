@@ -3,6 +3,7 @@ import { pool, withUserTx } from '../../config/db.js';
 import { requirePermission, requireAuth } from '../../middleware/auth.js';
 import { AppError } from '../../utils/AppError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
+import { parsePaging } from '../../utils/response.js';
 import { sqiApi } from '../../../../tv5/sqi.mjs';
 import { activate, calculate, comparison, configuration, createDefinition } from '../../../../tv5/sqi-admin.mjs';
 import { alertSummary, changeAlert, changeRecommendation, evaluate, listAlerts, listRules, saveRule } from '../../../../tv5/alerts.mjs';
@@ -32,7 +33,7 @@ function endpoint(method, path, permissions, handler) {
           .set('Content-Disposition', `attachment; filename="${data.filename}"`)
           .send(data.file);
       }
-      return res.json({ data });
+      return res.json(Array.isArray(data?.data) && data.meta ? data : { data });
     } catch (error) {
       if (error instanceof AppError) throw error;
       if (error.status >= 400 && error.status < 500) {
@@ -64,7 +65,7 @@ endpoint('post', '/sqi/calculate', ['sqi.write'], (req, url, body, options) => {
   return calculate(pool, body.definition, body.dataset, body.label, options);
 });
 
-endpoint('get', '/alerts', ['alert.read'], (_, url) => listAlerts(pool, url.searchParams));
+endpoint('get', '/alerts', ['alert.read'], (req, url) => listAlerts(pool, url.searchParams, parsePaging(req.query)));
 endpoint('get', '/alerts/summary', ['alert.read'], () => alertSummary(pool));
 endpoint('get', '/alert-rules', ['alert.read'], () => listRules(pool));
 endpoint('patch', '/alerts/:id', ['alert.write'], (req, url, body, options) => changeAlert(pool, req.params.id, body, options));
@@ -73,7 +74,7 @@ endpoint('post', '/alert-rules', ['alert.write'], (_, url, body, options) => sav
 endpoint('put', '/alert-rules/:id', ['alert.write'], (req, url, body, options) => saveRule(pool, req.params.id, body, options));
 endpoint('post', '/alerts/evaluate', ['alert.write'], (_, url, body, options) => evaluate(pool, body.at, options));
 
-endpoint('get', '/reports', ['reporting.read'], () => listReports(pool));
+endpoint('get', '/reports', ['reporting.read'], req => listReports(pool, parsePaging(req.query)));
 endpoint('get', '/reports/kpis', ['reporting.read'], async () => {
   const { rows } = await pool.query(`
     SELECT s.*, latest.measured_value

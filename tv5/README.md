@@ -56,6 +56,8 @@ Xem [Tiến độ TV5](TIEN_DO_TV5.md) để chuẩn bị báo cáo tuần.
 
 Chạy một lần với `npm.cmd run jobs -- --once`, hoặc chạy định kỳ trong terminal riêng với `npm.cmd run jobs`.
 
+Trong repo chung, tạo cấu hình `DATABASE_URL` ở file `.env` gốc giống backend. Từ `backend/`, chạy `npm.cmd run jobs:tv5 -- --once` để chạy một lần, hoặc `npm.cmd run jobs:tv5` để chạy định kỳ. Cài thư viện trong cả `backend/` và `tv5/` bằng `npm.cmd ci` trước khi chạy. Lệnh này yêu cầu `DATABASE_URL`, giúp API và job dùng chung địa chỉ PostgreSQL. Khi chạy `npm.cmd run jobs` từ `tv5/`, cấu hình `.env` ở gốc repo được ưu tiên hơn `tv5/.env`. Với bản demo độc lập chỉ có `tv5/.env`, các biến `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER` và `PGPASSWORD` vẫn được hỗ trợ.
+
 - `TV5_ALERT_MINUTES` mặc định 15 phút.
 - `TV5_SQI_MINUTES` mặc định 1.440 phút. Đặt thêm `TV5_DATASET_ID` bằng UUID của dataset version đang ở trạng thái `BUILT` để job tính SQI và gán nhãn. TV4 quản lý việc build và freeze.
 - Thêm `TV5_TELEGRAM_TOKEN` và `TV5_TELEGRAM_CHAT` trong `.env` để job gửi thông báo Telegram cho các cảnh báo vừa sinh. Khi gửi lỗi, job ghi log ID cảnh báo để kiểm tra. Lệnh đánh giá thủ công trên web dùng để thử luật và không gửi thông báo.
@@ -65,5 +67,7 @@ Chạy một lần với `npm.cmd run jobs -- --once`, hoặc chạy định k�
 Từ thư mục chứa `docker-compose.yml`, chạy `docker compose up -d --build` rồi mở giao diện chung tại `http://localhost:8080`. Nếu chạy frontend bằng Vite, mở `http://localhost:5173` và chạy backend chung ở cổng 4000. Đăng nhập qua giao diện chung để mở **Sức khỏe đất**, **Cảnh báo & quyết định** và **Báo cáo**.
 
 Backend chung phục vụ API tại `/api/v1/tv5`, dùng `DATABASE_URL` và quyền của phiên đăng nhập. Hai migration TV5 nằm trong `database/migrations/` và được áp dụng khi backend chung khởi động theo mặc định. Nếu tắt chế độ tự chạy migration, chạy `npm run migrate` trong `backend/` với cấu hình database chung.
+
+Danh sách cảnh báo và lịch sử báo cáo trong giao diện chung dùng phân trang, mặc định 20 bản ghi/trang. Các API `GET /api/v1/tv5/alerts?page=1&limit=20` và `GET /api/v1/tv5/reports?page=1&limit=20` trả `{ data: [...], meta: { page, limit, total } }`. Bộ lọc cảnh báo áp dụng trên toàn bộ dữ liệu trước khi phân trang. Chạy `npm.cmd test` trong `tv5/` để kiểm tra các thay đổi database, ngưỡng AI và phân trang.
 
 Docker lưu tệp báo cáo TV5 trong volume `tv5_reports`. Khi chạy Node trực tiếp, có thể cấu hình đường dẫn tuyệt đối `TV5_REPORT_DIR` trong `.env` ở thư mục gốc dự án. Mặc định tệp nằm trong `tv5/.reports/`. PostgreSQL lưu thông tin và trạng thái báo cáo.

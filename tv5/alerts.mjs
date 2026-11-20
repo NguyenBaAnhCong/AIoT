@@ -1,4 +1,5 @@
 import { actor, fail, transaction, uuid } from './db.mjs';
+import { pagedQuery } from './paging.mjs';
 
 const severities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 const sources = ['SENSOR', 'SQI', 'ML', 'DEVICE'];
@@ -19,13 +20,13 @@ export async function alertSummary(db) {
   return summary;
 }
 
-export async function listAlerts(db, filters) {
+export async function listAlerts(db, filters, paging) {
   const status = filters.get('status') || null;
   const severity = filters.get('severity') || null;
   const source = filters.get('source') || null;
   if ((status && !statuses.includes(status)) || (severity && !severities.includes(severity)) ||
       (source && ![...sources, 'DATA_QUALITY'].includes(source))) fail(400, 'Bộ lọc không hợp lệ.');
-  const { rows } = await db.query(`
+  return pagedQuery(db, `
     SELECT a.alert_id, a.status, a.source, a.severity, a.message, a.evidence,
            a.created_at, a.resolution_note, p.plot_code,
            ack.full_name AS acknowledged_by, a.acknowledged_at,
@@ -44,9 +45,8 @@ export async function listAlerts(db, filters) {
     ) recos ON true
     WHERE ($1::text IS NULL OR a.status = $1)
       AND ($2::text IS NULL OR a.severity = $2) AND ($3::text IS NULL OR a.source = $3)
-    ORDER BY a.created_at DESC, a.alert_id LIMIT 100
-  `, [status, severity, source]);
-  return rows;
+    ORDER BY a.created_at DESC, a.alert_id
+  `, [status, severity, source], paging, 'created_at DESC, alert_id');
 }
 
 export async function changeAlert(db, id, { status, note }, options) {
@@ -97,6 +97,7 @@ export async function saveRule(db, id, body, options) {
       (low != null && !Number.isFinite(low)) || (high != null && !Number.isFinite(high)) ||
       (['LT', 'OUTSIDE'].includes(condition) && low == null) ||
       (['GT', 'OUTSIDE'].includes(condition) && high == null) ||
+      (condition === 'ANOMALY' && high != null && (high < 0 || high > 1)) ||
       (condition === 'OUTSIDE' && low >= high) ||
       (condition === 'CLASS_IN' && (!Array.isArray(classes) || !classes.length ||
         classes.some(value => typeof value !== 'string' || !/^[A-Z_]{1,32}$/.test(value)))) ||
