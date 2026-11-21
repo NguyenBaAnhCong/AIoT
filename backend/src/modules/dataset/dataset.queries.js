@@ -6,7 +6,7 @@ export const createDatasetSql=`INSERT INTO dataset.datasets(dataset_code,name,pu
 export const createVersionSql=`INSERT INTO dataset.dataset_versions(dataset_id,version_no,time_from,time_to,aggregation,split_strategy,split_ratio,random_seed,created_by,notes) VALUES($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10) RETURNING *`;
 export const nextVersionSql=`SELECT COALESCE(max(version_no),0)+1 n FROM dataset.dataset_versions WHERE dataset_id=$1`;
 export const labelsSql=`SELECT * FROM dataset.labels ORDER BY label_set,class_order`;
-export const distributionSql=`SELECT l.label_code,l.name_vi,r.split,r.label_source,count(*)::int count FROM dataset.dataset_records r JOIN dataset.labels l USING(label_id) WHERE r.dataset_version_id=$1 GROUP BY l.label_code,l.name_vi,r.split,r.label_source ORDER BY l.class_order,r.split`;
+export const distributionSql=`SELECT l.label_code,l.name_vi,r.split,r.label_source,count(*)::int count FROM dataset.dataset_records r JOIN dataset.labels l USING(label_id) WHERE r.dataset_version_id=$1 GROUP BY l.label_code,l.name_vi,r.split,r.label_source ORDER BY min(l.class_order),r.split`;
 export const labelRecordSql=`UPDATE dataset.dataset_records SET label_id=$3,label_source='EXPERT' WHERE dataset_version_id=$1 AND record_id=$2 AND (label_source IS DISTINCT FROM 'EXPERT' OR label_id=$3) RETURNING *`;
 export const labelExistsSql=`SELECT label_id FROM dataset.labels WHERE label_id=$1`;
 export const recordLabelSql=`SELECT label_id,label_source FROM dataset.dataset_records WHERE dataset_version_id=$1 AND record_id=$2 FOR UPDATE`;
