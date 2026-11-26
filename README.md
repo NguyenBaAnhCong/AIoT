@@ -1,5 +1,7 @@
 # Edge-AIoT giám sát sức khỏe đất – Biochar
 
+TV5 (SQI, cảnh báo và báo cáo) dùng backend **Java Spring Boot** tại cổng 4005 và frontend **JavaScript thuần** trong `tv5-java/src/main/resources/static/tv5/assets/js/`. Menu nhóm mở ba trang `/tv5/sqi`, `/tv5/alerts`, `/tv5/reports`. Khi phát triển, mở thêm terminal tại `tv5-java/` và chạy `powershell -ExecutionPolicy Bypass -File .\start.ps1`. Xem [hướng dẫn TV5](tv5-java/README.md). Backend các thành viên khác chạy tại cổng 4000; frontend chung chuyển trang và API TV5 tới Java.
+
 Hệ thống cơ sở dữ liệu + backend + giao diện cho đề tài Edge-AIoT giám sát sức khỏe đất có bón Biochar.
 Nhóm 6 thành viên (TV1 là trưởng nhóm). Quy ước chung: [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md).
 

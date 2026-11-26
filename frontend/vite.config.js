@@ -6,6 +6,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    proxy: { '/api': process.env.VITE_API_PROXY || 'http://localhost:4000' },
+    proxy: {
+      '/tv5': process.env.VITE_TV5_PROXY || 'http://127.0.0.1:4005',
+      '/api/v1/tv5': process.env.VITE_TV5_PROXY || 'http://127.0.0.1:4005',
+      '/api': process.env.VITE_API_PROXY || 'http://localhost:4000',
+    },
   },
 });

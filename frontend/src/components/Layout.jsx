@@ -23,7 +23,9 @@ export default function Layout() {
             return (
               <div key={g} className="nav-group">
                 <div className="nav-group-title">{g}</div>
-                {items.map((s) => (
+                {items.map((s) => s.owner === 'TV5' ? (
+                  <a key={s.id} href={'/tv5' + s.path} className="nav-item"><span>{s.title}</span></a>
+                ) : (
                   <NavLink key={s.id} to={s.path} end={s.path === '/'} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
                     <span>{s.title}</span>
                   </NavLink>
