@@ -1,5 +1,7 @@
 # Tiến độ TV5
 
+Backend TV5 dùng Java Spring Boot trong `tv5-java/`. Frontend dùng JavaScript thuần tại `tv5-java/src/main/resources/static/tv5/assets/js/`, gồm Sức khỏe đất, Cảnh báo và Báo cáo; mở từ menu chung qua `/tv5/sqi`, `/tv5/alerts`, `/tv5/reports`. API giữ tiền tố `/api/v1/tv5`, xác thực bằng token TV1 và dùng cùng PostgreSQL. Job định kỳ, xử lý SQI/cảnh báo và tạo PDF/Excel chạy bằng Java. Hướng dẫn chạy và kiểm thử nằm trong `tv5-java/README.md`.
+
 ## Phần đã hoàn thành
 
 | Hạng mục | Kết quả |

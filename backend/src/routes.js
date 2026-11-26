@@ -15,7 +15,6 @@ import gatewayRoutes from './modules/gateway/gateway.routes.js';
 import calibrationRoutes from './modules/calibration/calibration.routes.js';
 import devicesRoutes from './modules/devices/devices.routes.js';
 
-import tv5Routes from './modules/tv5/tv5.routes.js';
 
 import userRoutes from './modules/users/users.routes.js';
 import { rolesRouter, permissionsRouter, organizationsRouter } from './modules/roles/roles.routes.js';
@@ -34,7 +33,6 @@ api.use('/api-keys', apiKeyRoutes);      // TV1
 api.use('/ml', mlRoutes);                // TV6
 api.use('/quality', dataQualityRoutes);  // TV4
 api.use('/datasets', datasetRoutes);     // TV4
-api.use('/tv5', tv5Routes);              // TV5
 api.use('/farm', farmRoutes);            // TV3
 api.use('/experiment', experimentRoutes);// TV3
 api.use('/biochar', biocharRoutes);      // TV3

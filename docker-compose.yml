@@ -44,15 +44,38 @@ services:
       JWT_SECRET: ${JWT_SECRET:-doi-chuoi-nay-trong-file-env}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
       MIGRATIONS_DIR: /migrations
-      TV5_REPORT_DIR: /reports
       TRUST_PROXY: "1"                    # đứng sau nginx: lấy đúng IP người dùng
       DEV_DEFAULT_PASSWORD: ${DEV_DEFAULT_PASSWORD:-Biochar@2026}
       SEED_DEV_PASSWORDS: ${SEED_DEV_PASSWORDS:-true}   # đặt false khi triển khai thật
     volumes:
       - ./database/migrations:/migrations:ro
-      - tv5_reports:/reports
     ports:
       - "${BACKEND_PORT:-4000}:4000"
+
+  tv5-java:
+    build:
+      context: .
+      dockerfile: tv5-java/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-biochar}:${POSTGRES_PASSWORD:-biochar_dev_pw}@db:5432/${POSTGRES_DB:-edge_aiot_biochar}
+      JWT_SECRET: ${JWT_SECRET:-doi-chuoi-nay-trong-file-env}
+      TV5_MIGRATIONS_DIR: /migrations
+      TV5_REPORT_DIR: /reports
+      TV5_JOBS_ENABLED: ${TV5_JOBS_ENABLED:-false}
+      TV5_DATASET_ID: ${TV5_DATASET_ID:-}
+      TV5_ALERT_MINUTES: ${TV5_ALERT_MINUTES:-15}
+      TV5_SQI_MINUTES: ${TV5_SQI_MINUTES:-1440}
+      TV5_TELEGRAM_TOKEN: ${TV5_TELEGRAM_TOKEN:-}
+      TV5_TELEGRAM_CHAT: ${TV5_TELEGRAM_CHAT:-}
+    volumes:
+      - ./database/migrations:/migrations:ro
+      - tv5_reports:/reports
+    ports:
+      - "4005:4005"
 
   frontend:
     build: ./frontend
@@ -60,6 +83,7 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+      - tv5-java
     ports:
       - "${FRONTEND_PORT:-8080}:80"      # mở http://localhost:8080
 
